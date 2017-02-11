@@ -14,6 +14,7 @@ public class Triangle
     }
 }
 
+[Serializable]
 public class Vertex
 {
     public Vector3 originalPos;

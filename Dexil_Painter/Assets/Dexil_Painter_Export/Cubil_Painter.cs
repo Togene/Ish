@@ -5,13 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
+/// <summary>
+/// Returns a Current Status aswell as a Array Position
+/// </summary>
 [Serializable]
-///<summary
-///I have a Huge Wang
-///</summer>
-///<remarks>
-/// Anus
-/// </remarks>
 public struct BoolInt
 {
     public int I;
@@ -291,8 +288,20 @@ public class CronenbergQuad
     {
         CronenbergQuad newCronen = new CronenbergQuad();
 
-        newCronen.cronenQuadList.AddRange(left);
-        newCronen.cronenQuadList.AddRange(right);
+        for(int i = 0; i < left.Count; i++)
+        {
+            if(!newCronen.cronenQuadList.Contains(left[i]))
+                newCronen.cronenQuadList.Add(left[i]);
+        }
+
+        for (int i = 0; i < right.Count; i++)
+        {
+            if (!newCronen.cronenQuadList.Contains(right[i]))
+                newCronen.cronenQuadList.Add(right[i]);
+        }
+
+        //newCronen.cronenQuadList.AddRange(left);
+        //newCronen.cronenQuadList.AddRange(right);
 
         return newCronen.cronenQuadList;
     }
@@ -385,6 +394,7 @@ public class Cubil_Painter : MonoBehaviour
 
     public List<Vertex> intersectingVertices = new List<Vertex>(); public List<Vertex> antiVertices = new List<Vertex>();
     public List<Vertex> edgeVertices = new List<Vertex>();
+    List<CronenbergQuad> intersectingCronens = new List<CronenbergQuad>();
 
     public List<CronenbergQuad> CronenbergList = new List<CronenbergQuad>();
 
@@ -796,6 +806,7 @@ public class Cubil_Painter : MonoBehaviour
     bool CheckCronenContainsBergsForInterSection(Quad Q0)
     {
         bool status = false;
+        int _j = 0;
 
         for (int i = 0; i < CronenbergList.Count; i++)
         {
@@ -828,15 +839,27 @@ public class Cubil_Painter : MonoBehaviour
                     if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
                     {
                         //Debug.Log("There Touching Cocks AND THERE ALREADY IN CRONENS");
-                        CronenbergList.Remove(CronenbergList[j]);
+                        //CronenbergList.Remove(CronenbergList[j]);
+                        if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
                         //return true;
+                        _j = j;
+                    }
+
+                    if (intersectingCronens.Count < 1)
+                    {
+                        Debug.Log(intersectingCronens.Count);
+                    }
+                    else
+                    {
+                        if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(CronenbergList[_j]);
                     }
                 }
 
-                return true;
+                status = true;
             }
         }
 
+        intersectingCronens.Clear();
         return status;
     }
 
