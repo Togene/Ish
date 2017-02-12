@@ -217,15 +217,6 @@ public class CronenbergQuad
 
                 if (miniCronens[u].CellQuadIntercepting(miniCronens[v]))
                 {
-                    //CronenCell newCell = CronenCell.MergeCells(miniCronens[u], miniCronens[v]);
-                    //
-                    //if (!miniCronens.Contains(newCell)) miniCronens.Add(newCell);
-                    //
-                    //if (miniCronens.Contains(miniCronens[u])) miniCronens.Remove(miniCronens[u]);
-                    //if (miniCronens.Contains(miniCronens[v])) miniCronens.Remove(miniCronens[v]);
-                    //
-                    //CheckAndAddtoCronen(newCell);
-
                     miniCronens[u].MergeCells(miniCronens[v]);
                     if (miniCronens.Contains(miniCronens[v])) miniCronens.Remove(miniCronens[v]);
 
@@ -1106,6 +1097,18 @@ public class Cubil_Painter : MonoBehaviour
         }
     
         CreateMesh();
+    }
+
+    void FindSquares()
+    {
+        //Find Sqaures By Comparing and Sorting threw Cronen outer points...yay
+        for(int i = 0; i < CronenbergList.Count; i++)
+        {
+            for(int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
+            {
+
+            }
+        }
     }
 
     void CreateMesh()
