@@ -22,22 +22,22 @@ public struct BoolInt
 }
 
 [Serializable]
-public class cronenCell
+public class CronenCell
 {
     public List<Quad> cellQuadList = new List<Quad>();
 
-    public cronenCell()
+    public CronenCell()
     {
         cellQuadList = new List<Quad>();
     }
 
-    public cronenCell(Quad Q)
+    public CronenCell(Quad Q)
     {
         cellQuadList = new List<Quad>();
         cellQuadList.Add(Q);
     }
 
-    public cronenCell(Quad Q0, Quad Q1)
+    public CronenCell(Quad Q0, Quad Q1)
     {
         cellQuadList = new List<Quad>();
         cellQuadList.Add(Q0);
@@ -57,17 +57,20 @@ public class cronenCell
 
     public bool IntersectingWithCell(Quad Q)
     {
+        bool status = false;
+
         for (int i = 0; i < cellQuadList.Count; i++)
         {
             if (Quad.intersectingQuad(cellQuadList[i], Q))
             {
-                return true;
+                if(!cellQuadList.Contains(Q)) cellQuadList.Add(Q);
             }
         }
-        return false;
+
+        return status;
     }
 
-    public bool CellQuadIntercepting(cronenCell right)
+    public bool CellQuadIntercepting(CronenCell right)
     {
         bool status = false;
 
@@ -86,26 +89,26 @@ public class cronenCell
         return status;
     }
 
-    public static cronenCell MergeCells(List<Quad> left, List<Quad> right)
+    public static CronenCell MergeCells(CronenCell left, CronenCell right)
     {
-        cronenCell newCronen = new cronenCell();
+        CronenCell newCell = new CronenCell();
 
-        for (int i = 0; i < left.Count; i++)
+        for (int i = 0; i < left.cellQuadList.Count; i++)
         {
-            if (!newCronen.cellQuadList.Contains(left[i]))
-                newCronen.cellQuadList.Add(left[i]);
+            if (!newCell.cellQuadList.Contains(left.cellQuadList[i]))
+                 newCell.cellQuadList.Add(left.cellQuadList[i]);
         }
 
-        for (int i = 0; i < right.Count; i++)
+        for (int j = 0; j < right.cellQuadList.Count; j++)
         {
-            if (!newCronen.cellQuadList.Contains(right[i]))
-                newCronen.cellQuadList.Add(right[i]);
+            if (!newCell.cellQuadList.Contains(right.cellQuadList[j]))
+                 newCell.cellQuadList.Add(right.cellQuadList[j]);
         }
 
-        return newCronen;
+        return newCell;
     }
 
-    public static bool operator ==(cronenCell left, cronenCell right)
+    public static bool operator ==(CronenCell left, CronenCell right)
     {
         if (object.ReferenceEquals(left, null))
         {
@@ -120,17 +123,17 @@ public class cronenCell
         return left.Equals(right);
     }
 
-    public static bool operator !=(cronenCell left, cronenCell right)
+    public static bool operator !=(CronenCell left, CronenCell right)
     {
         return !(left == right);
     }
 
     public override bool Equals(object obj)
     {
-        if (obj == null || !(obj is cronenCell))
+        if (obj == null || !(obj is CronenCell))
             return false;
         else
-            return (cellQuadList.SequenceEqual(((cronenCell)(obj)).cellQuadList));
+            return (cellQuadList.SequenceEqual(((CronenCell)(obj)).cellQuadList));
     }
 
     public override int GetHashCode()
@@ -142,7 +145,7 @@ public class cronenCell
 [Serializable]
 public class CronenbergQuad
 {
-    public List<cronenCell> miniCronens = new List<cronenCell>();
+    public List<CronenCell> miniCronens = new List<CronenCell>();
 
     public List<Quad> cronenQuadList = new List<Quad>();
 
@@ -164,129 +167,91 @@ public class CronenbergQuad
         cronenQuadList.Add(Q1);
     }
 
-    public void EvalauteCronen(int _i, List<CronenbergQuad> masterList)
+    public void EvalauteCronen(List<CronenbergQuad> masterList)
     {
         if (miniCronens.Count == 0)
         {
-            miniCronens.Add(new cronenCell(cronenQuadList[0]));
+            CronenCell newCell = new CronenCell(cronenQuadList[0]);
+            CheckAndAddtoCronen(newCell);
+            miniCronens.Add(newCell);
         }
 
-        for (int i = 0; i < cronenQuadList.Count; i++)
+        if (miniCronens.Count != 0)
         {
-            for (int j = 0; j < cronenQuadList.Count; j++)
+            for (int i = 0; i < cronenQuadList.Count; i++)
             {
-                if (cronenQuadList[i] == cronenQuadList[j])
+                BoolInt Status = CheckTheMinisForQuad(cronenQuadList[i]);
+
+                if (!Status.Status)
+                {
+                    CronenCell newCell = new CronenCell(cronenQuadList[i]);
+                    CheckAndAddtoCronen(newCell);
+                    miniCronens.Add(newCell);
+                }
+            }
+        }
+
+
+        for (int u = 0; u < miniCronens.Count; u++)
+        {
+            for (int v = 0; v < miniCronens.Count; v++)
+            {
+                if (miniCronens[u] == miniCronens[v])
                     continue;
 
-                BoolInt cronenInfo_I = CheckTheMinisForQuad(cronenQuadList[i]);
-                BoolInt cronenInfo_J = CheckTheMinisForQuad(cronenQuadList[j]);
+                if (miniCronens[u].CellQuadIntercepting(miniCronens[v]))
+                {
+                    CronenCell newCell = CronenCell.MergeCells(miniCronens[u], miniCronens[v]);
 
-                if(cronenInfo_I.Status == true && cronenInfo_J.Status == true)
-                {
-                    //There Both in Cells!
-                    if(miniCronens[cronenInfo_I.I].CellQuadIntercepting(miniCronens[cronenInfo_J.I]))
-                    {
-                        //There Intercepeting...So Merge them i guess
-                        Debug.Log("The Cells Touching");
-                    }
-                }
-                else if (cronenInfo_I.Status == true && cronenInfo_J.Status == false)
-                {
-                    //I's in a Cells!
-                    if (CheckMiniForIntercection(cronenInfo_I.I, cronenQuadList[j]))
-                    {
-                        Debug.Log("Cell I Is Touching a Quad");
-                        miniCronens[cronenInfo_I.I].cellQuadList.Add(cronenQuadList[j]);
-                        //There Intercepeting...So Merge them i guess
-                    }
-                }
-                else if (cronenInfo_J.Status == true && cronenInfo_I.Status == false)
-                {
-                    if (CheckMiniForIntercection(cronenInfo_J.I, cronenQuadList[i]))
-                    {
-                        Debug.Log("Cell J Is Touching a Quad");
-                        miniCronens[cronenInfo_J.I].cellQuadList.Add(cronenQuadList[i]);
-                        //There Intercepeting...So Merge them i guess
+                    if (!miniCronens.Contains(newCell)) miniCronens.Add(newCell);
 
-                    }
-                }
-                else
-                {
-                    //All Boxes Checked, Time to make a new Cell
-                    //None are in Cells
-                    if (Quad.intersectingQuad(cronenQuadList[i], cronenQuadList[j]))
-                    {
-                        Debug.Log("Both Touching And Both Arnt In Cells");
-                        miniCronens.Add(new cronenCell(cronenQuadList[i], cronenQuadList[j]));
-                        continue;
-                        //None are in Cells and there intercepting
-                    }
-                    else
-                    {
-                        miniCronens.Add(new cronenCell(cronenQuadList[i]));
-                        continue;
-                    }
+                    if (miniCronens.Contains(miniCronens[u])) miniCronens.Remove(miniCronens[u]);
+                    if (miniCronens.Contains(miniCronens[v])) miniCronens.Remove(miniCronens[v]);
+
+                    CheckAndAddtoCronen(newCell);
+                    continue;
                 }
             }
         }
 
-        for (int f = 0; f < miniCronens.Count; f++)
+        cronenQuadList.Clear();
+        cronenQuadList = miniCronens[0].cellQuadList;
+
+        for(int o = 1; o < miniCronens.Count; o++)
         {
-            CronenbergQuad newCronen = new CronenbergQuad();
-        
-            for (int j = 0; j < miniCronens[f].cellQuadList.Count; j++)
-            {
-               if (!newCronen.cronenQuadList.Contains(miniCronens[f].cellQuadList[j])) newCronen.cronenQuadList.Add(miniCronens[f].cellQuadList[j]);
-               if (cronenQuadList.Contains(miniCronens[f].cellQuadList[j])) cronenQuadList.Remove(miniCronens[f].cellQuadList[j]);
-            }
-        
-            if (!masterList.Contains(newCronen)) masterList.Add(newCronen);
+            CronenbergQuad newBerg = new CronenbergQuad();
+            newBerg.cronenQuadList = miniCronens[o].cellQuadList;
+
+            if(!masterList.Contains(newBerg)) masterList.Add(newBerg);
         }
 
-        Debug.Log(miniCronens.Count);
         miniCronens.Clear();
-        //masterList.Remove(this);
     }
 
-    public void CellIntercectionScan(int i, BoolInt cronenInfo_I)
+    public void CheckAndAddtoCronen(CronenCell newCell)
     {
-        for (int j = 0; j < cronenQuadList.Count; j++)
-        {
-            if (cronenQuadList[i] == cronenQuadList[j])
-                continue;
+        for (int i = 0; i < cronenQuadList.Count; i++)
+            newCell.IntersectingWithCell(cronenQuadList[i]);
 
-            BoolInt cronenInfo_J = CheckTheMinisForQuad(cronenQuadList[j]);
-
-            if (cronenInfo_J.Status == false)
-            {
-                if (CheckMiniForIntercection(cronenInfo_I.I, cronenQuadList[j]))
-                {
-                    cronenQuadList[j].quadColor = cronenQuadList[i].quadColor;
-                    miniCronens[cronenInfo_I.I].cellQuadList.Add(cronenQuadList[j]);
-                }
-                else
-                {
-                   // miniCronens.Add(new cronenCell(cronenQuadList[j]));
-                }
-            }
-        }
+        for (int i = 0; i < cronenQuadList.Count; i++)
+            newCell.IntersectingWithCell(cronenQuadList[i]);
     }
 
     public bool CheckMiniForIntercection(int cellIndex, Quad _Q)
     {
-        cronenCell cell = miniCronens[cellIndex];
-        return cell.IntersectingWithCell(_Q);
+        return miniCronens[cellIndex].IntersectingWithCell(_Q);
     }
 
-    public int GrabMiniIndex(Quad _Q)
+    public void ColorCells (Color[] colors)
     {
         for (int i = 0; i < miniCronens.Count; i++)
         {
-            if (miniCronens[i].CheckCellContains(_Q))
-                return i;
+            for (int j = 0; j < miniCronens[i].cellQuadList.Count; j++)
+            {
+                Color col = colors[i % colors.Length];
+                miniCronens[i].cellQuadList[j].quadColor = col;
+            }
         }
-
-        return -1;
     }
 
     public BoolInt CheckTheMinisForQuad(Quad _Q)
@@ -315,9 +280,6 @@ public class CronenbergQuad
         if (Qinterseption == Q1)
         {
             cronenQuadList.Remove(Q1);
-
-            if (cronenQuadList.Count == 0)
-                _list.Remove(this);
         }
 
         if (cronenQuadList.Contains(Qinterseption))
@@ -505,8 +467,6 @@ public class Cubil_Painter : MonoBehaviour
 
     Vector3 m_Input;
 
-    bool Intersecting;
-
     void Awake()
     {
         parametreQuad = Quad.create(new Vector3(0,0,0), new Vector3(0,0,0));   
@@ -554,14 +514,14 @@ public class Cubil_Painter : MonoBehaviour
             }
         }
 
-
         for (int i = 0; i < iterations; i++)
         { QuadCheck(); SimplifyQuads(); }
 
-
+        EvalauteCronens();
         EvaluateEdges();
         EvaluateParametreQuad();
         ColorCronen();
+        ColorCronenCells();
     }
 
     void SimplifyQuads()
@@ -718,8 +678,6 @@ public class Cubil_Painter : MonoBehaviour
         newAntiQuad.quadColor = Color.black;      
         antiQuadList.Add(newAntiQuad);
         FindBorders(newAntiQuad);
-
-        EvalauteCronens();
     }
 
     void FindBorders(Quad newAntiQuad)
@@ -765,7 +723,7 @@ public class Cubil_Painter : MonoBehaviour
             opp0.vertexPoints[2] = new Vertex(vert0.vertice, vert0.normal, vert0.centre);
             opp0.vertexPoints[3] = new Vertex(vert1.vertice, vert1.normal, vert1.centre);
             opp0.CalculateQuadArea();
-            opp0.quadColor = customColors[0];
+            //opp0.quadColor = customColors[0];
             QuadList.Add(opp0);
             CheckAndManageBrokenCronenBergs(intesectingQuad, opp0);
         }
@@ -778,7 +736,7 @@ public class Cubil_Painter : MonoBehaviour
             side0.vertexPoints[2] = new Vertex(vert3.vertice, vert3.normal, vert3.centre);
             side0.vertexPoints[3] = new Vertex(sideVert3.vertice, sideVert3.normal, sideVert3.centre);
             side0.CalculateQuadArea();
-            side0.quadColor = customColors[1];
+            //side0.quadColor = customColors[1];
             QuadList.Add(side0);
             CheckAndManageBrokenCronenBergs(intesectingQuad, side0);
         }
@@ -791,7 +749,7 @@ public class Cubil_Painter : MonoBehaviour
             opp1.vertexPoints[2] = new Vertex(oppVert2.vertice, oppVert2.normal, oppVert2.centre);
             opp1.vertexPoints[3] = new Vertex(oppVert3.vertice, oppVert3.normal, oppVert3.centre);
             opp1.CalculateQuadArea();
-            opp1.quadColor = customColors[2];
+           // opp1.quadColor = customColors[2];
             QuadList.Add(opp1);
             CheckAndManageBrokenCronenBergs(intesectingQuad, opp1);
         }
@@ -804,7 +762,7 @@ public class Cubil_Painter : MonoBehaviour
             side1.vertexPoints[2] = new Vertex(sideVert2.vertice, sideVert2.normal, sideVert2.centre);
             side1.vertexPoints[3] = new Vertex(vert2.vertice, vert2.normal, vert2.centre);
             side1.CalculateQuadArea();
-            side1.quadColor = customColors[3];
+            //side1.quadColor = customColors[3];
             QuadList.Add(side1);
             CheckAndManageBrokenCronenBergs(intesectingQuad, side1);
         }
@@ -863,10 +821,18 @@ public class Cubil_Painter : MonoBehaviour
         {
             for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
             {
-                Color col = cronenColors[i % cronenColors.Length];
-                
-                CronenbergList[i].cronenQuadList[j].quadColor = col;
+                //Color col = cronenColors[i % cronenColors.Length];
+                //
+                //CronenbergList[i].cronenQuadList[j].quadColor = col;
             }
+        }
+    }
+
+    void ColorCronenCells()
+    {
+        for (int i = 0; i < CronenbergList.Count; i++)
+        {                                                                                       
+           CronenbergList[i].ColorCells(cronenColors);
         }
     }
 
@@ -874,7 +840,7 @@ public class Cubil_Painter : MonoBehaviour
     {
         for (int i = 0; i < CronenbergList.Count; i++)
         {
-            CronenbergList[i].EvalauteCronen(i, CronenbergList);
+            CronenbergList[i].EvalauteCronen(CronenbergList);
         }
     }
 
