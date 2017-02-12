@@ -108,6 +108,15 @@ public class CronenCell
         return newCell;
     }
 
+    public void MergeCells(CronenCell right)
+    {
+        for (int j = 0; j < right.cellQuadList.Count; j++)
+        {
+            if (!cellQuadList.Contains(right.cellQuadList[j]))
+                 cellQuadList.Add(right.cellQuadList[j]);
+        }
+    }
+
     public static bool operator ==(CronenCell left, CronenCell right)
     {
         if (object.ReferenceEquals(left, null))
@@ -169,6 +178,13 @@ public class CronenbergQuad
 
     public void EvalauteCronen(List<CronenbergQuad> masterList)
     {
+
+        if(cronenQuadList.Count == 0)
+        {
+            masterList.Remove(this);
+            return;
+        }
+
         if (miniCronens.Count == 0)
         {
             CronenCell newCell = new CronenCell(cronenQuadList[0]);
@@ -201,14 +217,18 @@ public class CronenbergQuad
 
                 if (miniCronens[u].CellQuadIntercepting(miniCronens[v]))
                 {
-                    CronenCell newCell = CronenCell.MergeCells(miniCronens[u], miniCronens[v]);
+                    //CronenCell newCell = CronenCell.MergeCells(miniCronens[u], miniCronens[v]);
+                    //
+                    //if (!miniCronens.Contains(newCell)) miniCronens.Add(newCell);
+                    //
+                    //if (miniCronens.Contains(miniCronens[u])) miniCronens.Remove(miniCronens[u]);
+                    //if (miniCronens.Contains(miniCronens[v])) miniCronens.Remove(miniCronens[v]);
+                    //
+                    //CheckAndAddtoCronen(newCell);
 
-                    if (!miniCronens.Contains(newCell)) miniCronens.Add(newCell);
-
-                    if (miniCronens.Contains(miniCronens[u])) miniCronens.Remove(miniCronens[u]);
+                    miniCronens[u].MergeCells(miniCronens[v]);
                     if (miniCronens.Contains(miniCronens[v])) miniCronens.Remove(miniCronens[v]);
 
-                    CheckAndAddtoCronen(newCell);
                     continue;
                 }
             }
@@ -390,7 +410,7 @@ public class CronenbergQuad
             {
                 if (Quad.intersectingQuad(cronenQuadList[i], right.cronenQuadList[j]))
                 {
-                    //Debug.Log("Intercepting And Merging Cronens");
+                    Debug.Log("Intercepting And Merging Cronens");
               
                     cronenQuadList = MergeCronens(cronenQuadList, right.cronenQuadList);
                     return true;
@@ -494,6 +514,7 @@ public class Cubil_Painter : MonoBehaviour
 
         if (g_Utils.pointInCube(m_Input, new Vector3(0, 0, 0), new Vector3(16, 16, 16)))
         {
+
             mockQuad.UpdateQuad(sp);
             FaceInPoint(sp);
 
@@ -517,11 +538,10 @@ public class Cubil_Painter : MonoBehaviour
         for (int i = 0; i < iterations; i++)
         { QuadCheck(); SimplifyQuads(); }
 
-        EvalauteCronens();
         EvaluateEdges();
         EvaluateParametreQuad();
         ColorCronen();
-        ColorCronenCells();
+        //ColorCronenCells();
     }
 
     void SimplifyQuads()
@@ -695,6 +715,8 @@ public class Cubil_Painter : MonoBehaviour
         QuadList.Remove(intesectingQuad);
         CheckAndManageBrokenCronenBergs(intesectingQuad, intesectingQuad);
         intesectingQuad = null;
+
+        EvalauteCronens();
     }
 
     void CreateOpposingFractures(Quad innerQuad)
@@ -817,40 +839,63 @@ public class Cubil_Painter : MonoBehaviour
 
     void ColorCronen()
     {
-        for (int i = 0; i < CronenbergList.Count; i++)
+        if (CronenbergList.Count != 0)
         {
-            for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
+            for (int i = 0; i < CronenbergList.Count; i++)
             {
-                //Color col = cronenColors[i % cronenColors.Length];
-                //
-                //CronenbergList[i].cronenQuadList[j].quadColor = col;
+                for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
+                {
+                    Color col = cronenColors[i % cronenColors.Length];
+
+                    CronenbergList[i].cronenQuadList[j].quadColor = col;
+                }
             }
         }
     }
 
     void ColorCronenCells()
     {
-        for (int i = 0; i < CronenbergList.Count; i++)
-        {                                                                                       
-           CronenbergList[i].ColorCells(cronenColors);
+        if (CronenbergList.Count != 0)
+        {
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                CronenbergList[i].ColorCells(cronenColors);
+            }
         }
     }
 
     void EvalauteCronens()
     {
-        for (int i = 0; i < CronenbergList.Count; i++)
+        if (CronenbergList.Count != 0)
         {
-            CronenbergList[i].EvalauteCronen(CronenbergList);
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                CronenbergList[i].EvalauteCronen(CronenbergList);
+
+                for (int j = 0; j < CronenbergList.Count; j++)
+                {
+                    if (CronenbergList[i] == CronenbergList[j])
+                        continue;
+
+                    if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
+                    {
+                        Debug.Log("There Touching Again");
+                    }
+                }
+            }
         }
     }
 
     bool CheckAndManageBrokenCronenBergs(Quad Qinterecpt, Quad Q1)
     {
-        for (int i = 0; i < CronenbergList.Count; i++)
+        if (CronenbergList.Count != 0)
         {
-            if (CronenbergList[i].FractorCronenQuads(Qinterecpt, Q1, CronenbergList))
+            for (int i = 0; i < CronenbergList.Count; i++)
             {
-                return true;
+                if (CronenbergList[i].FractorCronenQuads(Qinterecpt, Q1, CronenbergList))
+                {
+                    return true;
+                }
             }
         }
          
@@ -859,9 +904,12 @@ public class Cubil_Painter : MonoBehaviour
 
     void CheckAndIniatiateChainCheckBergs(Quad Q0, Quad Q1, Quad Qmerged)
     {
-        for (int i = 0; i < CronenbergList.Count; i++)
+        if (CronenbergList.Count != 0)
         {
-            CronenbergList[i].MergeCronenQuads(Q0, Q1, Qmerged);
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                CronenbergList[i].MergeCronenQuads(Q0, Q1, Qmerged);
+            }
         }
     }
 
@@ -870,39 +918,42 @@ public class Cubil_Painter : MonoBehaviour
         bool status = false;
         int _j = 0;
 
-        for (int i = 0; i < CronenbergList.Count; i++)
+        if (CronenbergList.Count != 0)
         {
-            if (!CronenbergList[i].IntersectingWithCronen(Q0))
+            for (int i = 0; i < CronenbergList.Count; i++)
             {
-            }
-            else
-            {
-                for (int j = 0; j < CronenbergList.Count; j++)
+                if (!CronenbergList[i].IntersectingWithCronen(Q0))
                 {
-                    if (CronenbergList[i] == CronenbergList[j])
+                }
+                else
+                {
+                    for (int j = 0; j < CronenbergList.Count; j++)
                     {
-                        continue;
-                    }
-
-                    if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-                    {
-                        if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
-                    }
-
-                    if (intersectingCronens.Count < 1)
-                    {
-                        //Debug.Log(intersectingCronens.Count);
-                    }
-                    else
-                    {
-                        for(int k = 0; k < intersectingCronens.Count; k++)
+                        if (CronenbergList[i] == CronenbergList[j])
                         {
-                            if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
+                            continue;
+                        }
+
+                        if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
+                        {
+                            if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
+                        }
+
+                        if (intersectingCronens.Count < 1)
+                        {
+                            //Debug.Log(intersectingCronens.Count);
+                        }
+                        else
+                        {
+                            for (int k = 0; k < intersectingCronens.Count; k++)
+                            {
+                                if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
+                            }
                         }
                     }
-                }
 
-                status = true;
+                    status = true;
+                }
             }
         }
 
