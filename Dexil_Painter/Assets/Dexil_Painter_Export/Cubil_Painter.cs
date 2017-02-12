@@ -962,10 +962,13 @@ public class Cubil_Painter : MonoBehaviour
     }
 
     void RemoveFromCronen(Quad Q0)
-    {  
-        for (int i = 0; i < CronenbergList.Count; i++)
+    {
+        if (CronenbergList.Count != 0)
         {
-            if (CronenbergList[i].CheckCronenContains(Q0)) CronenbergList[i].Remove(Q0);
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                if (CronenbergList[i].CheckCronenContains(Q0)) CronenbergList[i].Remove(Q0);
+            }
         }
     }
 
@@ -1175,16 +1178,25 @@ public class Cubil_Painter : MonoBehaviour
                 //Gizmos.DrawSphere(antiVertices[i + 0].vertice, .15f);
             }
 
-            for (int i = 0; i < QuadList.Count; i++)
-                QuadList[i].DrawQuad(.1f);
-
-            for (int i = 0; i < intersectingVertices.Count; i++)
-                Gizmos.DrawSphere(intersectingVertices[i].vertice, .1f);
-
-            for (int i = 0; i < edgeVertices.Count; i++)
+            if (QuadList.Count != 0)
             {
-                Gizmos.color = Color.red;
-                Gizmos.DrawSphere(edgeVertices[i].vertice, .1f);
+                for (int i = 0; i < QuadList.Count; i++)
+                    QuadList[i].DrawQuad(.1f);
+            }
+
+            if (intersectingVertices.Count != 0)
+            {
+                for (int i = 0; i < intersectingVertices.Count; i++)
+                    Gizmos.DrawSphere(intersectingVertices[i].vertice, .1f);
+            }
+
+            if (edgeVertices.Count != 0)
+            {
+                for (int i = 0; i < edgeVertices.Count; i++)
+                {
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawSphere(edgeVertices[i].vertice, .1f);
+                }
             }
 
             //for (int i = 0; i < antiQuadList.Count; i++)
