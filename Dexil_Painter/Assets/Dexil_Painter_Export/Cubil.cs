@@ -94,7 +94,7 @@ public class Quad
     public Quad q;
     public float area;
 
-    public Quad(){ CreateTris();}
+    public Quad(){ CreateTris(); vertexPoints = CreateVerts(new Vector3(0,0,0), new Vector3(0, 0, 0)); }
 
     public static Quad create(Vector3 _c, Vector3 _dir)
     {
@@ -113,7 +113,7 @@ public class Quad
        vertexPoints = CreateVerts(_c, _dir);
        centre = _c;
        CreateTris();
-        CalculateQuadArea();
+       CalculateQuadArea();
        quadColor = Color.white;
     }
 

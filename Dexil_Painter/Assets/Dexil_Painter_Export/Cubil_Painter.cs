@@ -155,18 +155,23 @@ public class CronenCell
 public class CronenbergQuad
 {
     public List<CronenCell> miniCronens = new List<CronenCell>();
-
     public List<Quad> cronenQuadList = new List<Quad>();
+    public List<Vertex> CronenEdgeVertices = new List<Vertex>();
+    public Color cronenColor;
+    public Quad CronenParamtreQuad;
+    public float TotalCronenArea;
 
     public CronenbergQuad()
     {
         cronenQuadList = new List<Quad>();
+        CronenParamtreQuad = new Quad();
     }
 
     public CronenbergQuad(Quad Q)
     {
         cronenQuadList = new List<Quad>();
         cronenQuadList.Add(Q);
+        CronenParamtreQuad = new Quad();
     }
 
     public CronenbergQuad(Quad Q0, Quad Q1)
@@ -174,6 +179,7 @@ public class CronenbergQuad
         cronenQuadList = new List<Quad>();
         cronenQuadList.Add(Q0);
         cronenQuadList.Add(Q1);
+        CronenParamtreQuad = new Quad();
     }
 
     public void EvalauteCronen(List<CronenbergQuad> masterList)
@@ -225,17 +231,30 @@ public class CronenbergQuad
             }
         }
 
-        cronenQuadList.Clear();
-        cronenQuadList = miniCronens[0].cellQuadList;
-
-        for(int o = 1; o < miniCronens.Count; o++)
+        for (int o = 1; o < miniCronens.Count; o++)
         {
             CronenbergQuad newBerg = new CronenbergQuad();
-            newBerg.cronenQuadList = miniCronens[o].cellQuadList;
 
-            if(!masterList.Contains(newBerg)) masterList.Add(newBerg);
+            for (int j = 0; j < miniCronens[o].cellQuadList.Count; j++)
+            {
+                if (!newBerg.cronenQuadList.Contains(miniCronens[o].cellQuadList[j]))
+                    newBerg.cronenQuadList.Add(miniCronens[o].cellQuadList[j]);
+
+                newBerg.SetParametreQuad();
+            }
+
+            if (!masterList.Contains(newBerg)) masterList.Add(newBerg);
         }
 
+        cronenQuadList.Clear();
+
+        for (int j = 0; j < miniCronens[0].cellQuadList.Count; j++)
+        {
+            if(!cronenQuadList.Contains(miniCronens[0].cellQuadList[j]))
+                cronenQuadList.Add(miniCronens[0].cellQuadList[j]);
+        }
+
+        miniCronens[0].cellQuadList[0].vertexPoints.CopyTo(CronenParamtreQuad.vertexPoints, 0);
         miniCronens.Clear();
     }
 
@@ -288,7 +307,6 @@ public class CronenbergQuad
 
     public bool FractorCronenQuads(Quad Qinterseption, Quad Q1, List<CronenbergQuad> _list)
     {
-
         if (Qinterseption == Q1)
         {
             cronenQuadList.Remove(Q1);
@@ -305,7 +323,6 @@ public class CronenbergQuad
             CheckCronenContainsAndAdd(Q1);
             return true;
         }
-
         return false;
     }
 
@@ -418,6 +435,161 @@ public class CronenbergQuad
         return false;
     }
 
+    public void EvaluateCronenEdges()
+    {
+        CronenEdgeVertices.Clear();
+
+        if (cronenQuadList.Count != 0)
+        {
+            for (int i = 0; i < cronenQuadList.Count; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    //Left Side
+                    if (cronenQuadList[i].vertexPoints[j].vertice.x == CronenParamtreQuad.vertexPoints[0].vertice.x)
+                    {
+                        if (!CronenEdgeVertices.Contains(cronenQuadList[i].vertexPoints[j]))
+                            CronenEdgeVertices.Add(cronenQuadList[i].vertexPoints[j]);
+                    }
+
+                    //Right Side
+                    if (cronenQuadList[i].vertexPoints[j].vertice.x == CronenParamtreQuad.vertexPoints[3].vertice.x)
+                    {
+                        if (!CronenEdgeVertices.Contains(cronenQuadList[i].vertexPoints[j]))
+                            CronenEdgeVertices.Add(cronenQuadList[i].vertexPoints[j]);
+                    }
+
+                    //Top Side
+                    if (cronenQuadList[i].vertexPoints[j].vertice.y == CronenParamtreQuad.vertexPoints[2].vertice.y)
+                    {
+                        if (!CronenEdgeVertices.Contains(cronenQuadList[i].vertexPoints[j]))
+                            CronenEdgeVertices.Add(cronenQuadList[i].vertexPoints[j]);
+                    }
+
+                    //Bottom Side
+                    if (cronenQuadList[i].vertexPoints[j].vertice.y == CronenParamtreQuad.vertexPoints[1].vertice.y)
+                    {
+                        if (!CronenEdgeVertices.Contains(cronenQuadList[i].vertexPoints[j]))
+                            CronenEdgeVertices.Add(cronenQuadList[i].vertexPoints[j]);
+                    }
+                }
+            }
+        }
+    }
+
+    public void CalculateTotalQuadArea()
+    {
+        TotalCronenArea = 0f;
+
+        for (int i = 0; i < cronenQuadList.Count; i++)
+        {
+            TotalCronenArea += cronenQuadList[i].area;
+        }
+    }
+
+    public void EvaluateCronenParametreQuad()
+    {
+        if (CronenParamtreQuad.area == TotalCronenArea && cronenQuadList.Count > 2 && !Input.GetMouseButtonDown(1))
+        {
+            Debug.Log("It Was All Me Baby In The Cronen!");
+            cronenQuadList.Clear();
+            cronenQuadList.Add(CronenParamtreQuad);
+            CronenEdgeVertices.Clear();
+        }
+    }
+
+    public void DrawEdgeVertices()
+    {
+        for (int i = 0; i < CronenEdgeVertices.Count; i++)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawSphere(CronenEdgeVertices[i].vertice, .1f);
+        }
+    }
+
+    public void DrawParametre()
+    {
+        if (CronenParamtreQuad != null)
+        {
+            CronenParamtreQuad.DrawQuad(.1f);
+        }
+    }
+
+    public void CalculateParametreInformation()
+    {
+        if(cronenQuadList.Count <= 1)
+        {
+            SetParametreQuad();
+        }
+        else
+        {
+            EvalauteParamtre();
+        }
+    }
+
+    public void SetParametreQuad()
+    {
+
+        cronenQuadList[0].vertexPoints.CopyTo(CronenParamtreQuad.vertexPoints, 0);
+       // CronenParamtreQuad.vertexPoints =  cronenQuadList[0].vertexPoints;
+        CronenParamtreQuad.quadColor = Color.green;
+    }
+
+    public void EvalauteParamtre()
+    {
+        float leftx = CronenParamtreQuad.vertexPoints[0].vertice.x;
+        float rightx = CronenParamtreQuad.vertexPoints[3].vertice.x;
+        float topy = CronenParamtreQuad.vertexPoints[2].vertice.y;
+        float bottomy = CronenParamtreQuad.vertexPoints[1].vertice.y;
+
+        for(int i = 0; i < cronenQuadList.Count; i++)
+        {
+            for(int j = 0; j < cronenQuadList[i].vertexPoints.Length; j++)
+            {
+                Vertex vertPoint = cronenQuadList[i].vertexPoints[j];
+
+                if (vertPoint.vertice.x < leftx)
+                {
+                    leftx = vertPoint.vertice.x;
+                }
+
+                if (vertPoint.vertice.x > rightx)
+                {
+                    rightx = vertPoint.vertice.x;
+                }
+
+                if (vertPoint.vertice.y > topy)
+                {
+                    topy = vertPoint.vertice.y;
+                }
+
+                if (vertPoint.vertice.y < bottomy)
+                {
+                    bottomy = vertPoint.vertice.y;
+                }
+            }
+        }
+
+        Vector3 norm = cronenQuadList[0].vertexPoints[0].normal;
+        Vector3 centre = cronenQuadList[0].vertexPoints[0].centre;
+
+        float z = cronenQuadList[0].vertexPoints[0].vertice.z;
+
+        Vertex vert0 = new Vertex(new Vector3(leftx, bottomy, z), norm, centre);
+        Vertex vert1 = new Vertex(new Vector3(rightx, bottomy, z), norm, centre);
+        Vertex vert2 = new Vertex(new Vector3(leftx, topy, z), norm, centre);
+        Vertex vert3 = new Vertex(new Vector3(rightx, topy, z), norm, centre);
+
+        CronenParamtreQuad.vertexPoints[0] = vert0;
+
+        CronenParamtreQuad.vertexPoints[1] = vert1;
+
+        CronenParamtreQuad.vertexPoints[2] = vert2;
+
+        CronenParamtreQuad.vertexPoints[3] = vert3;
+
+    }
+
     public static bool operator ==(CronenbergQuad left, CronenbergQuad right)
     {
         if (object.ReferenceEquals(left, null))
@@ -461,7 +633,7 @@ public class Cubil_Painter : MonoBehaviour
     Mesh CubilMesh;
     public GameObject Cubil;
 
-    public Quad mockQuad, parametreQuad, intesectingQuad;
+    public Quad mockQuad, intesectingQuad;
 
     public List<Quad> QuadList = new List<Quad>();
 
@@ -470,7 +642,7 @@ public class Cubil_Painter : MonoBehaviour
     public List<Quad> antiQuadList = new List<Quad>(); 
 
     public List<Vertex> intersectingVertices = new List<Vertex>(); public List<Vertex> antiVertices = new List<Vertex>();
-    public List<Vertex> edgeVertices = new List<Vertex>();
+
     List<CronenbergQuad> intersectingCronens = new List<CronenbergQuad>();
 
     public List<CronenbergQuad> CronenbergList = new List<CronenbergQuad>();
@@ -486,8 +658,7 @@ public class Cubil_Painter : MonoBehaviour
     Vector3 m_Input;
 
     void Awake()
-    {
-        parametreQuad = Quad.create(new Vector3(0,0,0), new Vector3(0,0,0));   
+    { 
         mockQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
         CubilMesh = new Mesh();
         CreateGrid(25, 25);
@@ -512,9 +683,9 @@ public class Cubil_Painter : MonoBehaviour
 
         if (g_Utils.pointInCube(m_Input, new Vector3(0, 0, 0), new Vector3(16, 16, 16)))
         {
-
             mockQuad.UpdateQuad(sp);
             FaceInPoint(sp);
+            FindCronenEdgeQuads();
 
             if (!FaceInPoint(sp))
             {
@@ -534,142 +705,18 @@ public class Cubil_Painter : MonoBehaviour
         }
 
         for (int i = 0; i < iterations; i++)
-        { QuadCheck(); SimplifyQuads(); }
+        { QuadCheck();}
 
-        EvaluateEdges();
-        EvaluateParametreQuad();
         ColorCronen();
         //ColorCronenCells();
     }
 
-    void SimplifyQuads()
+    void FindCronenEdgeQuads()
     {
-        if (QuadList.Count > 1 && QuadList.Count != 0)
-            {
-
-            parametreQuad = new Quad(QuadList[0].centre, QuadList[0].vertexPoints[0].normal);
-
-            //Do a Quad Check and Merge
-            for (int i = 0; i < QuadList.Count; i++)
-                {
-                    AssignBorders(QuadList[i].vertexPoints);
-                }
-            }
-    }
-
-    void EvaluateParametreQuad()
-    {
-       if (parametreQuad.area == TotalArea && QuadList.Count > 2 && !Input.GetMouseButtonDown(1))
+        for (int i = 0; i < CronenbergList.Count; i++)
         {
-            //Debug.Log("It Was All Me Baby!");
-            QuadList.Clear();
-            CronenbergList.Clear();
-            QuadList.Add(parametreQuad);
-            CronenbergList.Add(new CronenbergQuad(parametreQuad));
-            CreateMesh();
-        } 
-    }
-
-    void CalculateTotalQuadArea()
-    {
-        TotalArea = 0f;
-
-        for (int i = 0; i < QuadList.Count; i++)
-        {
-            TotalArea += QuadList[i].area;
+            CronenbergList[i].CalculateParametreInformation();
         }
-    }
-
-    void AssignBorders(Vertex[] q_verts)
-    {
-        float leftX = parametreQuad.vertexPoints[0].vertice.x;
-        float rightX = parametreQuad.vertexPoints[1].vertice.x;
-        float topY = parametreQuad.vertexPoints[3].vertice.y;
-        float bottomY = parametreQuad.vertexPoints[1].vertice.y;
-
-        for(int v = 0; v < q_verts.Length; v++)
-        {
-            if (q_verts[v].vertice.x < leftX)
-            {
-                leftX = q_verts[v].vertice.x;
-            }
-
-            if (q_verts[v].vertice.x > rightX)
-            {
-                rightX = q_verts[v].vertice.x;
-            }
-
-            if (q_verts[v].vertice.y < bottomY)
-            {
-                bottomY = q_verts[v].vertice.y;
-            }
-
-            if (q_verts[v].vertice.y > topY)
-            {
-                topY = q_verts[v].vertice.y;
-            }
-        }
-
-        UpdateParemetreQuad(leftX, rightX, topY, bottomY);
-        parametreQuad.CalculateQuadArea();
-        CalculateTotalQuadArea();
-    }
-
-    void EvaluateEdges()
-    {
-        edgeVertices.Clear();
-
-        if (QuadList.Count != 0)
-        {
-            for (int i = 0; i < QuadList.Count; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    //Left Side
-                    if (QuadList[i].vertexPoints[j].vertice.x == parametreQuad.vertexPoints[0].vertice.x)
-                    {
-                        if (!edgeVertices.Contains(QuadList[i].vertexPoints[j]))
-                            edgeVertices.Add(QuadList[i].vertexPoints[j]);
-                    }
-
-                    //Right Side
-                    if (QuadList[i].vertexPoints[j].vertice.x == parametreQuad.vertexPoints[3].vertice.x)
-                    {
-                        if (!edgeVertices.Contains(QuadList[i].vertexPoints[j]))
-                            edgeVertices.Add(QuadList[i].vertexPoints[j]);
-                    }
-
-                    //Top Side
-                    if (QuadList[i].vertexPoints[j].vertice.y == parametreQuad.vertexPoints[2].vertice.y)
-                    {
-                        if (!edgeVertices.Contains(QuadList[i].vertexPoints[j]))
-                            edgeVertices.Add(QuadList[i].vertexPoints[j]);
-                    }
-
-                    //Bottom Side
-                    if (QuadList[i].vertexPoints[j].vertice.y == parametreQuad.vertexPoints[1].vertice.y)
-                    {
-                        if (!edgeVertices.Contains(QuadList[i].vertexPoints[j]))
-                            edgeVertices.Add(QuadList[i].vertexPoints[j]);
-                    }
-                }
-            }
-        }
-    }
-
-    void UpdateParemetreQuad(float leftX, float rightX, float topY, float bottomY)
-    {
-        parametreQuad.vertexPoints[0].vertice.x = leftX;
-        parametreQuad.vertexPoints[0].vertice.y = bottomY;
-
-        parametreQuad.vertexPoints[1].vertice.x = rightX;
-        parametreQuad.vertexPoints[1].vertice.y = bottomY;
-
-        parametreQuad.vertexPoints[2].vertice.x = leftX;
-        parametreQuad.vertexPoints[2].vertice.y = topY;
-
-        parametreQuad.vertexPoints[3].vertice.x = rightX;
-        parametreQuad.vertexPoints[3].vertice.y = topY;
     }
 
     void CheckForInterSectingQuads()
@@ -695,10 +742,10 @@ public class Cubil_Painter : MonoBehaviour
 
         newAntiQuad.quadColor = Color.black;      
         antiQuadList.Add(newAntiQuad);
-        FindBorders(newAntiQuad);
+        FindBordersAndBreak(newAntiQuad);
     }
 
-    void FindBorders(Quad newAntiQuad)
+    void FindBordersAndBreak(Quad newAntiQuad)
     {
         CreateCornerFractures(newAntiQuad.vertexPoints[0], 0);
         CreateCornerFractures(newAntiQuad.vertexPoints[1], 1);
@@ -943,9 +990,12 @@ public class Cubil_Painter : MonoBehaviour
                         }
                         else
                         {
-                            for (int k = 0; k < intersectingCronens.Count; k++)
+                            if (intersectingCronens.Count != 0)
                             {
-                                if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
+                                for (int k = 0; k < intersectingCronens.Count; k++)
+                                {
+                                    if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
+                                }
                             }
                         }
                     }
@@ -1069,7 +1119,7 @@ public class Cubil_Painter : MonoBehaviour
         Quad currentQuad = new Quad();
         Quad nextQuad = new Quad();
 
-        if (QuadList.Count >= 2 && !Input.GetMouseButton(1))
+        if (QuadList.Count >= 2)
         {
             //Do a Quad Check and Merge
             for (int i = 0; i < QuadList.Count; i++)
@@ -1109,6 +1159,7 @@ public class Cubil_Painter : MonoBehaviour
     void FindSquares()
     {
         //Find Sqaures By Comparing and Sorting threw Cronen outer points...yay
+
         for(int i = 0; i < CronenbergList.Count; i++)
         {
             for(int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
@@ -1178,9 +1229,6 @@ public class Cubil_Painter : MonoBehaviour
 
             mockQuad.DrawQuad(.1f);
 
-           //if (parametreQuad.vertexPoints[0] != null)
-             //  parametreQuad.DrawQuad(.1f);
-
             for (int i = 0; i < antiVertices.Count; i ++)
             {
                 //Gizmos.color = Color.magenta;
@@ -1200,15 +1248,14 @@ public class Cubil_Painter : MonoBehaviour
                     Gizmos.DrawSphere(intersectingVertices[i].vertice, .1f);
             }
 
-            if (edgeVertices.Count != 0)
+            if (CronenbergList.Count != 0)
             {
-                for (int i = 0; i < edgeVertices.Count; i++)
+                for (int i = 0; i < CronenbergList.Count; i++)
                 {
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawSphere(edgeVertices[i].vertice, .1f);
+                    CronenbergList[i].DrawEdgeVertices();
+                    CronenbergList[i].DrawParametre();
                 }
             }
-
             //for (int i = 0; i < antiQuadList.Count; i++)
             //    antiQuadList[i].DrawQuad(.1f);
 
