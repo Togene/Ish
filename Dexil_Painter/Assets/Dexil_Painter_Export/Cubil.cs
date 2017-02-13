@@ -139,16 +139,16 @@ public class Quad
 
         Gizmos.color = quadColor;
         //Drawing Vertices and Normals
-        Gizmos.DrawSphere(vertexPoints[0].vertice, size);
+       // Gizmos.DrawSphere(vertexPoints[0].vertice, size);
         Gizmos.DrawLine(vertexPoints[0].vertice, vertexPoints[0].vertice + vertexPoints[0].normal);
 
-        Gizmos.DrawSphere(vertexPoints[1].vertice, size);
+       // Gizmos.DrawSphere(vertexPoints[1].vertice, size);
         Gizmos.DrawLine(vertexPoints[1].vertice, vertexPoints[1].vertice + vertexPoints[1].normal);
 
-        Gizmos.DrawSphere(vertexPoints[2].vertice, size);
+       // Gizmos.DrawSphere(vertexPoints[2].vertice, size);
         Gizmos.DrawLine(vertexPoints[2].vertice, vertexPoints[2].vertice + vertexPoints[2].normal);
 
-        Gizmos.DrawSphere(vertexPoints[3].vertice, size);
+       // Gizmos.DrawSphere(vertexPoints[3].vertice, size);
         Gizmos.DrawLine(vertexPoints[3].vertice, vertexPoints[3].vertice + vertexPoints[3].normal);
 
         //Drawing Traingles

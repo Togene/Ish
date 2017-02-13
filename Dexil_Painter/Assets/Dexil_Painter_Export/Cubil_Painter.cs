@@ -738,6 +738,7 @@ public class Cubil_Painter : MonoBehaviour
             CronenbergList[i].CalculateConvexInformation();
             CronenbergList[i].CalculateTotalQuadArea();
             CronenbergList[i].CheckConvexQuad(QuadList);
+            CronenbergList[i].EvaluateCronenEdges();
         }
     }
 
