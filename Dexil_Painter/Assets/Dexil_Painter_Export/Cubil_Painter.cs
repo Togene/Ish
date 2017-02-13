@@ -288,9 +288,16 @@ public class CronenbergQuad
 
     public bool FractorCronenQuads(Quad Qinterseption, Quad Q1, List<CronenbergQuad> _list)
     {
+
         if (Qinterseption == Q1)
         {
             cronenQuadList.Remove(Q1);
+
+            if (cronenQuadList.Count == 0)
+            {
+                _list.Remove(this);
+                return false;
+            }
         }
 
         if (cronenQuadList.Contains(Qinterseption))
