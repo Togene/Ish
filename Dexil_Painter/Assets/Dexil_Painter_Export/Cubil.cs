@@ -21,7 +21,7 @@ public class Vertex
     public Vector3 vertice;
     public Vector3 normal;
     public Vector3 centre;
-    Color col;
+    public Color col;
 
     public Vertex() { }
 
