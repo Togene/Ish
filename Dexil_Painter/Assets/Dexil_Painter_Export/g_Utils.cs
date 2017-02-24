@@ -33,6 +33,14 @@ public static class g_Utils
         return InRange(x, p1.x, p2.x) && InRange(y, p1.y, p2.y);
     }
 
+    public static bool pointInRectExcludeBorder(float x, float y, Vector3 p1, Vector3 p2)
+    {
+        return InRange(x, p1.x, p2.x) && 
+               InRange(y, p1.y, p2.y) &&
+               x != p1.x && x != p2.x && 
+               y != p1.y && y != p2.y;
+    }
+
     public static bool pointInCube(Vector3 p0, Vector3 p1, Vector3 p2)
     {
         return InRange(p0.x, p1.x, p2.x) && InRange(p0.y, p1.y, p2.y) && InRange(p0.z, p1.z, p2.z);

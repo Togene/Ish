@@ -171,7 +171,7 @@ public class Quad
 
     public Quad MergeQuads(Quad right, int[] leftIndices, Color _color)
     {
-        Quad newQuad = Quad.create(centre, new Vector3(0, 0, 0)); //new Quad(centre, new Vector3(0, 0, 0));
+        Quad newQuad = create(centre, new Vector3(0, 0, 0)); //new Quad(centre, new Vector3(0, 0, 0));
 
         newQuad.vertexPoints = vertexPoints;
         newQuad.quadColor = _color;
@@ -188,32 +188,28 @@ public class Quad
 
     public bool inFace(Vector3 _p)
     {
-        bool status = false;
+        return (g_Utils.pointInRect(_p.x, _p.y, vertexPoints[0].vertice, vertexPoints[3].vertice));
+    }
 
-        if (g_Utils.pointInRect(_p.x, _p.y, vertexPoints[0].vertice, vertexPoints[3].vertice))
-        { status = true; }
-        return status;
+    public bool inFaceExcludeBorder(Vector3 _p)
+    {
+        return (g_Utils.pointInRectExcludeBorder(_p.x, _p.y, vertexPoints[0].vertice, vertexPoints[3].vertice));
     }
 
     public static bool intersectingQuad(Quad _l, Quad _r)
     {
-        if (g_Utils.rectIntersect(_l, _r))
-        { return true; }
-
-        return false;
+        return (g_Utils.rectIntersect(_l, _r));
     }
 
     public static Vertex[] CreateVerts(Vector3 c, Vector3 _dir)
     {
-        Vertex[] VertTemp = new Vertex[]
+        return new Vertex[]
         {
             new Vertex(new Vector3(-.5f, -.5f, .5f) + c, _dir, c), //0
             new Vertex(new Vector3(+.5f, -.5f, .5f) + c, _dir, c), //1
             new Vertex(new Vector3(-.5f, +.5f, .5f) + c, _dir, c), //2
             new Vertex(new Vector3(+.5f, +.5f, .5f) + c, _dir, c)  //3 
         };
-
-        return VertTemp;
     }
 
     public static bool operator ==(Quad left, Quad right)

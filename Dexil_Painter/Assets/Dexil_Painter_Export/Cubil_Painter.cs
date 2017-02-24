@@ -5,6 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
+public enum Direction
+{
+    right,
+    down,
+    left,
+    up,
+};
+
 /// <summary>
 /// Returns a Current Status aswell as a Array Position
 /// </summary>
@@ -157,6 +165,7 @@ public class CronenbergQuad
     public List<CronenCell> miniCronens = new List<CronenCell>();
     public List<Quad> cronenQuadList = new List<Quad>();
     public List<Vertex> CronenEdgeVertices = new List<Vertex>();
+    public List<Vertex> vertexList = new List<Vertex>();
     public Color cronenColor;
     public Quad CronenConvexQuad;
     public float TotalCronenArea;
@@ -371,6 +380,51 @@ public class CronenbergQuad
         return false;
     }
 
+    public bool CheckPointInQuadExludingBorder(Vector3 v)
+    {
+        for (int i = 0; i < cronenQuadList.Count; i++)
+        {
+            if (cronenQuadList[i].inFaceExcludeBorder(v))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public bool CheckPointInQuad(Vector3 v)
+    {
+        for (int i = 0; i < cronenQuadList.Count; i++)
+        {
+            if (cronenQuadList[i].inFace(v))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool CheckPointPinchInCronen(Vector3 v)
+    {
+        int counter = 0;
+
+        for (int i = 0; i < cronenQuadList.Count; i++)
+        {
+            if (cronenQuadList[i].inFace(v))
+            {
+                counter++;
+
+                if (counter >= 2)
+                    return true;
+                else
+                continue;
+            }
+        }
+
+        return false;
+    }
+
     public void Remove(Quad Q)
     {
         if (cronenQuadList.Contains(Q)) { cronenQuadList.Remove(Q); }
@@ -435,69 +489,135 @@ public class CronenbergQuad
         return false;
     }
 
+    public List<Vertex> CopyToDuplicateVertexList()
+    {
+        List<Vertex> duplicateList = new List<Vertex>();
+
+        for (int i = 0; i < cronenQuadList.Count; i++)
+        {
+            for (int j = 0; j < cronenQuadList[i].vertexPoints.Length; j++)
+            {
+               if(!duplicateList.Contains(cronenQuadList[i].vertexPoints[j])) duplicateList.Add(cronenQuadList[i].vertexPoints[j]);
+            }
+        }
+
+        return duplicateList;
+    }
+
     public void EvaluateCronenEdges()
     {
         CronenEdgeVertices.Clear();
+        vertexList.Clear();
 
-        Vertex BottomLeftCorner = new Vertex();
+        vertexList = CopyToDuplicateVertexList();
 
-        if (cronenQuadList.Count != 0)
+        Vertex activeVertex = new Vertex();
+        vertexList = vertexList.OrderBy(o => o.vertice.x).ToList();
+        vertexList = vertexList.OrderBy(o => o.vertice.y).ToList();
+        activeVertex = vertexList[0];
+
+        activeVertex.col = Color.magenta;
+        if(!CronenEdgeVertices.Contains(activeVertex)) CronenEdgeVertices.Add(activeVertex);
+
+        SearchForEdges(activeVertex, vertexList, vertexList[0]);
+    }
+
+    public void SearchForEdges(Vertex activeVertex, List<Vertex> _list, Vertex removal)
+    {
+        _list.Remove(removal);
+
+        if (_list.Count == 0)
         {
-            for (int i = 0; i < cronenQuadList.Count; i++)
+            Debug.Log("The End");
+            return;
+        }
+
+        for (int i = 0; i < _list.Count; i++)
+        {
+            if (StepCheck(activeVertex, _list[i]))
             {
-                for (int j = 0; j < 4; j++)
-                {
-                    //Bottom And Left Side
-                    if (cronenQuadList[i].vertexPoints[j].vertice.x == CronenConvexQuad.vertexPoints[0].vertice.x &&
-                        cronenQuadList[i].vertexPoints[j].vertice.y == CronenConvexQuad.vertexPoints[0].vertice.y)
-                    {
-                        Debug.Log("Find Corner");
-                        BottomLeftCorner = cronenQuadList[i].vertexPoints[j];
-                        BottomLeftCorner.col = Color.red;
-
-                        if (!CronenEdgeVertices.Contains(cronenQuadList[i].vertexPoints[j]))
-                            CronenEdgeVertices.Add(cronenQuadList[i].vertexPoints[j]);
-
-                        FindEdges(cronenQuadList[i].vertexPoints[j]);
-
-                        return;
-                    }
-                }
+                SearchForEdges(_list[i], _list, _list[i]);
             }
-
-            if (cronenQuadList.Count != 0)
+            else
             {
-                for (int i = 0; i < cronenQuadList.Count; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-
-                        if (cronenQuadList[i].vertexPoints[j].vertice.x == CronenConvexQuad.vertexPoints[0].vertice.x)
-                        {
-                            Debug.Log("Found Lower Corner X");
-                            BottomLeftCorner = cronenQuadList[i].vertexPoints[j];
-                            BottomLeftCorner.col = Color.red;
-
-                            if (!CronenEdgeVertices.Contains(cronenQuadList[i].vertexPoints[j]))
-                                 CronenEdgeVertices.Add(cronenQuadList[i].vertexPoints[j]);
-
-                            FindEdges(cronenQuadList[i].vertexPoints[j]);
-                            return;
-                        }
-                    }
-                }
+                continue;
             }
         }
     }
 
-    public void FindEdges(Vertex _vert)
+    public bool StepCheck(Vertex activeVertex, Vertex l_i)
     {
-        float xSteps = Math.Abs(_vert.vertice.x - CronenConvexQuad.vertexPoints[1].vertice.x);
-        float ySteps = Math.Abs(_vert.vertice.y - CronenConvexQuad.vertexPoints[2].vertice.y);
+        int leftToRightNumStepsX = (int)Mathf.Abs((activeVertex.vertice.x - CronenConvexQuad.vertexPoints[1].vertice.x));
+        int righToLeftNumStepsX =  (int)Mathf.Abs((activeVertex.vertice.x - CronenConvexQuad.vertexPoints[0].vertice.x));
+        int bottomToTopNumStepsY = (int)Mathf.Abs((activeVertex.vertice.y - CronenConvexQuad.vertexPoints[3].vertice.y));
+        int TopToBottomNumStepsY = (int)Mathf.Abs((activeVertex.vertice.y - CronenConvexQuad.vertexPoints[1].vertice.y));
 
-        Debug.Log(ySteps);
+        //Right Step Search
+        if (StepSearch(leftToRightNumStepsX, Direction.right, activeVertex, l_i, Color.red))
+        {                 
+           return true;
+        }
+        else if (StepSearch(bottomToTopNumStepsY, Direction.up, activeVertex, l_i, Color.green))
+        {
+            return true;
+        }
+        else if (StepSearch(TopToBottomNumStepsY, Direction.down, activeVertex, l_i, Color.blue))
+        {
+            return true;
+        }
+        else if (StepSearch(righToLeftNumStepsX, Direction.left, activeVertex, l_i, Color.cyan))
+        {
+            return true;
+        }
+
+        return false;
     }
 
+    public bool StepSearch(int steps, Direction dir, Vertex originVert, Vertex sampleVert, Color col)
+    {
+        for (float j = 0.5f; j <= steps; j += 0.5f)
+        {
+            Vector3 vectorDir = CreateDirectionVertex(originVert, dir, j);
+
+            if (vectorDir == sampleVert.vertice)
+            {
+                sampleVert.col = col;
+                CronenEdgeVertices.Add(sampleVert);
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+    public Vector3 CreateDirectionVertex(Vertex _vert, Direction dir, float stepSize)
+    {
+        Vector3 vector = new Vector3();
+
+        if (dir == Direction.right)
+        {
+            vector = new Vector3(_vert.vertice.x + stepSize, _vert.vertice.y, _vert.vertice.z);
+        }
+        else if (dir == Direction.down)
+        {
+            vector = new Vector3(_vert.vertice.x, _vert.vertice.y - stepSize, _vert.vertice.z);
+        }
+        else if (dir == Direction.left)
+        {
+            vector = new Vector3(_vert.vertice.x - stepSize, _vert.vertice.y, _vert.vertice.z);
+        }
+        else if (dir == Direction.up)
+        {
+            vector = new Vector3(_vert.vertice.x , _vert.vertice.y + stepSize, _vert.vertice.z);
+        }
+        else
+        {
+            Debug.Log("No Direction Selected");
+        }
+
+        return vector;
+    }
 
     public void CalculateTotalQuadArea()
     {
@@ -613,11 +733,12 @@ public class CronenbergQuad
         }
     }
 
-    public void DrawEdgeVertices()
+    public void DrawEdgeVertices(Color[] cols)
     {
         for (int i = 0; i < CronenEdgeVertices.Count; i++)
         {
             Gizmos.color = CronenEdgeVertices[i].col;
+            //Gizmos.color = cols[i % cols.Length];
             Gizmos.DrawSphere(CronenEdgeVertices[i].vertice, .1f);
         }
     }
@@ -714,12 +835,10 @@ public class Cubil_Painter : MonoBehaviour
 
         bool pointInCube = g_Utils.pointInCube(m_Input, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
-
         if (pointInCube)
         {
             for (int i = 0; i < iterations; i++)
             { QuadCheck(); }
-
 
             CheckForInterSectingQuads();
 
@@ -1402,7 +1521,7 @@ public class Cubil_Painter : MonoBehaviour
             {
                 for (int i = 0; i < CronenbergList.Count; i++)
                 {
-                    CronenbergList[i].DrawEdgeVertices();
+                    CronenbergList[i].DrawEdgeVertices(cronenColors);
                     CronenbergList[i].DrawConvexQuad();
                 }
             }
