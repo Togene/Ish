@@ -415,7 +415,7 @@ public class CronenbergQuad
             {
                 counter++;
 
-                if (counter >= 2)
+                if (counter >= 3)
                     return true;
                 else
                 continue;
@@ -489,135 +489,41 @@ public class CronenbergQuad
         return false;
     }
 
-    public List<Vertex> CopyToDuplicateVertexList()
-    {
-        List<Vertex> duplicateList = new List<Vertex>();
-
-        for (int i = 0; i < cronenQuadList.Count; i++)
-        {
-            for (int j = 0; j < cronenQuadList[i].vertexPoints.Length; j++)
-            {
-               if(!duplicateList.Contains(cronenQuadList[i].vertexPoints[j])) duplicateList.Add(cronenQuadList[i].vertexPoints[j]);
-            }
-        }
-
-        return duplicateList;
-    }
-
     public void EvaluateCronenEdges()
     {
         CronenEdgeVertices.Clear();
-        vertexList.Clear();
 
-        vertexList = CopyToDuplicateVertexList();
-
-        Vertex activeVertex = new Vertex();
-        vertexList = vertexList.OrderBy(o => o.vertice.x).ToList();
-        vertexList = vertexList.OrderBy(o => o.vertice.y).ToList();
-        activeVertex = vertexList[0];
-
-        activeVertex.col = Color.magenta;
-        if(!CronenEdgeVertices.Contains(activeVertex)) CronenEdgeVertices.Add(activeVertex);
-
-        SearchForEdges(activeVertex, vertexList, vertexList[0]);
+        CreateCheckGrid();
+        //RemoveInnerVertices();
     }
 
-    public void SearchForEdges(Vertex activeVertex, List<Vertex> _list, Vertex removal)
+    public void CreateCheckGrid()
     {
-        _list.Remove(removal);
-
-        if (_list.Count == 0)
+        for (float i = CronenConvexQuad.vertexPoints[0].vertice.x; i <= CronenConvexQuad.vertexPoints[1].vertice.x; i += 0.25f)
         {
-            Debug.Log("The End");
-            return;
-        }
+            for (float j = CronenConvexQuad.vertexPoints[1].vertice.y; j <= CronenConvexQuad.vertexPoints[3].vertice.y; j += 0.25f)
+            {
+                Vertex newVert = new Vertex();
+                Vector3 vertice = new Vector3(i, j, CronenConvexQuad.vertexPoints[0].vertice.z);
+                newVert.vertice = vertice;
+                newVert.col = Color.yellow;
 
-        for (int i = 0; i < _list.Count; i++)
-        {
-            if (StepCheck(activeVertex, _list[i]))
-            {
-                SearchForEdges(_list[i], _list, _list[i]);
-            }
-            else
-            {
-                continue;
+                if(!(CheckPointInQuadExludingBorder(vertice)))
+                if (!CronenEdgeVertices.Contains(newVert)) CronenEdgeVertices.Add(newVert);
             }
         }
     }
 
-    public bool StepCheck(Vertex activeVertex, Vertex l_i)
-    {
-        int leftToRightNumStepsX = (int)Mathf.Abs((activeVertex.vertice.x - CronenConvexQuad.vertexPoints[1].vertice.x));
-        int righToLeftNumStepsX =  (int)Mathf.Abs((activeVertex.vertice.x - CronenConvexQuad.vertexPoints[0].vertice.x));
-        int bottomToTopNumStepsY = (int)Mathf.Abs((activeVertex.vertice.y - CronenConvexQuad.vertexPoints[3].vertice.y));
-        int TopToBottomNumStepsY = (int)Mathf.Abs((activeVertex.vertice.y - CronenConvexQuad.vertexPoints[1].vertice.y));
-
-        //Right Step Search
-        if (StepSearch(leftToRightNumStepsX, Direction.right, activeVertex, l_i, Color.red))
-        {                 
-           return true;
-        }
-        else if (StepSearch(bottomToTopNumStepsY, Direction.up, activeVertex, l_i, Color.green))
-        {
-            return true;
-        }
-        else if (StepSearch(TopToBottomNumStepsY, Direction.down, activeVertex, l_i, Color.blue))
-        {
-            return true;
-        }
-        else if (StepSearch(righToLeftNumStepsX, Direction.left, activeVertex, l_i, Color.cyan))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool StepSearch(int steps, Direction dir, Vertex originVert, Vertex sampleVert, Color col)
-    {
-        for (float j = 0.5f; j <= steps; j += 0.5f)
-        {
-            Vector3 vectorDir = CreateDirectionVertex(originVert, dir, j);
-
-            if (vectorDir == sampleVert.vertice)
-            {
-                sampleVert.col = col;
-                CronenEdgeVertices.Add(sampleVert);
-                return true;
-            }
-
-        }
-
-        return false;
-    }
-
-    public Vector3 CreateDirectionVertex(Vertex _vert, Direction dir, float stepSize)
-    {
-        Vector3 vector = new Vector3();
-
-        if (dir == Direction.right)
-        {
-            vector = new Vector3(_vert.vertice.x + stepSize, _vert.vertice.y, _vert.vertice.z);
-        }
-        else if (dir == Direction.down)
-        {
-            vector = new Vector3(_vert.vertice.x, _vert.vertice.y - stepSize, _vert.vertice.z);
-        }
-        else if (dir == Direction.left)
-        {
-            vector = new Vector3(_vert.vertice.x - stepSize, _vert.vertice.y, _vert.vertice.z);
-        }
-        else if (dir == Direction.up)
-        {
-            vector = new Vector3(_vert.vertice.x , _vert.vertice.y + stepSize, _vert.vertice.z);
-        }
-        else
-        {
-            Debug.Log("No Direction Selected");
-        }
-
-        return vector;
-    }
+    //public void RemoveInnerVertices()
+    //{
+    //    for(int i = 0; i < CronenEdgeVertices.Count; i++)
+    //    {
+    //        if (CheckPointInQuadExludingBorder(CronenEdgeVertices[i].vertice))
+    //        {
+    //            CronenEdgeVertices.Remove(CronenEdgeVertices[i]);
+    //        }
+    //    }
+    //}
 
     public void CalculateTotalQuadArea()
     {
@@ -739,7 +645,7 @@ public class CronenbergQuad
         {
             Gizmos.color = CronenEdgeVertices[i].col;
             //Gizmos.color = cols[i % cols.Length];
-            Gizmos.DrawSphere(CronenEdgeVertices[i].vertice, .1f);
+            Gizmos.DrawCube(CronenEdgeVertices[i].vertice, new Vector3(.1f, .1f, .1f));
         }
     }
 
@@ -844,7 +750,6 @@ public class Cubil_Painter : MonoBehaviour
 
             mockQuad.UpdateQuad(sp);
             FaceInPoint(sp);
-            FindCronenEdgeQuads();
 
             if (!FaceInPoint(sp))
             {
@@ -863,8 +768,8 @@ public class Cubil_Painter : MonoBehaviour
             }
 
             mockQuad.UpdateQuad(sp);
-
             ColorCronen();
+            FindCronenEdgeQuads();
 
             if (QuadList.Count != 0)
             {

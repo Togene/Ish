@@ -191,6 +191,17 @@ public class Quad
         return (g_Utils.pointInRect(_p.x, _p.y, vertexPoints[0].vertice, vertexPoints[3].vertice));
     }
 
+    public static bool MatchVerts(Quad _q, Vector3 _p)
+    {
+        for(int i = 0; i < _q.vertexPoints.Length; i++)
+        {
+            if (_q.vertexPoints[i].vertice == _p)
+                return true;
+        }
+
+        return false;
+    }
+
     public bool inFaceExcludeBorder(Vector3 _p)
     {
         return (g_Utils.pointInRectExcludeBorder(_p.x, _p.y, vertexPoints[0].vertice, vertexPoints[3].vertice));
