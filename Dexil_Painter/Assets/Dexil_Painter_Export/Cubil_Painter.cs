@@ -37,6 +37,10 @@ public class Cubil_Painter : MonoBehaviour
     Vector3[,] Grid;
 
     Vector3 m_Input;
+    Ray m_Input2;
+    Vector3 sp2;
+
+    float rayLength;
 
     void Awake()
     {
@@ -53,7 +57,16 @@ public class Cubil_Painter : MonoBehaviour
 
     void UserInput()
     {
+
         m_Input = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        m_Input2 = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        rayLength = transform.position.magnitude;
+
+        //Vector3 dir = transform.InverseTransformDirection(m_Input2);
+
+        Debug.DrawRay(transform.position, m_Input2.direction * rayLength);
 
         float sp_X = g_Utils.roundNearest(m_Input.x, m_Input.x / 15);
         float sp_Y = g_Utils.roundNearest(m_Input.y, m_Input.y / 15);
@@ -61,7 +74,15 @@ public class Cubil_Painter : MonoBehaviour
 
         Vector3 sp = new Vector3(sp_X + .5f, sp_Y + .5f, sp_Z);
 
-        bool pointInCube = g_Utils.pointInCube(m_Input, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
+        Vector3 intersection = transform.position + transform.TransformDirection((m_Input2.direction * rayLength));
+
+        float sp_X_2 = g_Utils.roundNearest(intersection.x, intersection.x / 15);
+        float sp_Y_2 = g_Utils.roundNearest(intersection.y, intersection.y / 15);
+        float sp_Z_2 = g_Utils.roundNearest(intersection.z, intersection.z / 15);
+
+        sp2 = new Vector3(sp_X_2 + .5f, sp_Y_2 + .5f, sp_Z_2);
+
+        bool pointInCube = g_Utils.pointInCube(sp2, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
         if (pointInCube)
         {
@@ -725,6 +746,17 @@ public class Cubil_Painter : MonoBehaviour
     {
         if(Application.isPlaying)
         {
+
+            //F(x y) = (y2 - y1) * x + (x1 - x2) * y + (x2 * y1 - x1 * y2)
+
+
+            Vector3 intersection = transform.position + (m_Input2.direction * rayLength);
+                //g_Utils.lineIntersect(transform.position, m_Input2.direction * rayLength, new Vector3(0, 0, 0), new Vector3(0, 16, 0));
+
+            Gizmos.DrawSphere(sp2, .25f);
+
+            //Debug.Log(sp2);
+
             DrawGrid();
             DrawEditorCube();
 

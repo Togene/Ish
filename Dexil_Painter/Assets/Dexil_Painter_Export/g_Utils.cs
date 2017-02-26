@@ -68,14 +68,34 @@ public static class g_Utils
     {
         return rangeIntersect(left.vertexPoints[2].vertice.x, left.vertexPoints[3].vertice.x, right.vertexPoints[2].vertice.x, right.vertexPoints[3].vertice.x)
             && rangeIntersect(left.vertexPoints[0].vertice.y, left.vertexPoints[2].vertice.y, right.vertexPoints[0].vertice.y, right.vertexPoints[2].vertice.y);
-
-        //return rangeIntersect(tile.x1, tile.x2, box.topLeft.x, box.topRight.x)
-        //    && rangeIntersect(tile.y1, tile.y4, box.bottomLeft.y, box.topLeft.y);
     }
 
     public static Color RandomColor()
     {
         return new Color(randomRange(0, 1.0f), randomRange(0, 1.0f), randomRange(0, 1.0f), 1.0f);
+    }
+
+    public static Vector3 lineIntersect(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        //A1 is the change in Y
+        //B1 is the change in X
+
+        //Ax + By = C  => Standard Form
+
+        float A1 = p1.y - p0.y;
+        float B1 = p0.x - p1.x; //x values are reversed
+        float C1 = A1 * p0.x + B1 * p0.y;
+
+        float A2 = p3.y - p2.y;
+        float B2 = p2.x - p3.x;
+        float C2 = A2 * p2.x + B2 * p2.y;
+
+        float denominator = A1 * B2 - A2 * B1;
+
+        float x = (B2 * C1 - B1 * C2) / denominator;
+        float y = (A1 * C2 - A2 * C1) / denominator;
+
+        return new Vector3(x, y, 1.0f);
     }
 
     public static Sprite getSprite(Texture2D _set, int i, int j, int tileWidth, int tileHeight)
