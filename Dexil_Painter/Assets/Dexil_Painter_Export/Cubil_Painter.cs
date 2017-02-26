@@ -405,20 +405,62 @@ public class CronenbergQuad
         return false;
     }
 
-    public bool CheckPointPinchInCronen(Vector3 v)
+    public bool CheckVertexMatch(Vector3 v)
     {
-        int counter = 0;
-
         for (int i = 0; i < cronenQuadList.Count; i++)
         {
-            if (cronenQuadList[i].inFace(v))
+            if (Quad.MatchVerts(cronenQuadList[i], (v)))
             {
-                counter++;
+                return true;
+            }
+        }
 
-                if (counter >= 3)
-                    return true;
-                else
-                continue;
+        return false;
+    }
+
+    public bool CheckPointPinchInCronen(Vector3 v, int numQuads, bool noVert)
+    {
+
+        //Check Pinches Without Verts
+        if (noVert)
+        {
+            int counter = 0;
+
+            for (int i = 0; i < cronenQuadList.Count; i++)
+            {
+                if (cronenQuadList[i].inFace(v) && !Quad.MatchVerts(cronenQuadList[i], v))
+                {
+                    counter++;
+             
+                    if (counter >= numQuads)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            //Check Pinches With Verts 
+            int counter = 0;
+            int vertCounter = 0;
+
+            for (int i = 0; i < cronenQuadList.Count; i++)
+            {
+                if (cronenQuadList[i].inFace(v))
+                {
+                    counter++;
+
+                    if(Quad.MatchVerts(cronenQuadList[i], v))
+                    {
+                        vertCounter++;
+                    }
+
+                    if (counter >= numQuads && vertCounter != counter)
+                    {
+                        return true;
+                    }
+                }
             }
         }
 
@@ -494,7 +536,6 @@ public class CronenbergQuad
         CronenEdgeVertices.Clear();
 
         CreateCheckGrid();
-        //RemoveInnerVertices();
     }
 
     public void CreateCheckGrid()
@@ -508,22 +549,23 @@ public class CronenbergQuad
                 newVert.vertice = vertice;
                 newVert.col = Color.yellow;
 
-                if(!(CheckPointInQuadExludingBorder(vertice)))
-                if (!CronenEdgeVertices.Contains(newVert)) CronenEdgeVertices.Add(newVert);
+                if ((!CheckPointInQuadExludingBorder(vertice)) && (!CheckPointPinchInCronen(vertice, 2, true)))
+                {
+                    if (CheckPointInQuad(vertice))
+                    {
+                        if (!CheckPointPinchInCronen(vertice, 3, false))
+                        {
+                            if (CheckVertexMatch(vertice))
+                            {
+                                if (!CronenEdgeVertices.Contains(newVert)) CronenEdgeVertices.Add(newVert);
+                            }
+
+                        }
+                    }
+                }
             }
         }
     }
-
-    //public void RemoveInnerVertices()
-    //{
-    //    for(int i = 0; i < CronenEdgeVertices.Count; i++)
-    //    {
-    //        if (CheckPointInQuadExludingBorder(CronenEdgeVertices[i].vertice))
-    //        {
-    //            CronenEdgeVertices.Remove(CronenEdgeVertices[i]);
-    //        }
-    //    }
-    //}
 
     public void CalculateTotalQuadArea()
     {

@@ -193,10 +193,12 @@ public class Quad
 
     public static bool MatchVerts(Quad _q, Vector3 _p)
     {
-        for(int i = 0; i < _q.vertexPoints.Length; i++)
+        for (int i = 0; i < _q.vertexPoints.Length; i++)
         {
             if (_q.vertexPoints[i].vertice == _p)
+            {
                 return true;
+            }
         }
 
         return false;
