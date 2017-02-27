@@ -37,8 +37,7 @@ public class Cubil_Painter : MonoBehaviour
     Vector3[,] Grid;
 
     Vector3 m_Input;
-    Ray m_Input2;
-    Vector3 sp2;
+    Ray ray;
 
     float rayLength;
 
@@ -57,16 +56,17 @@ public class Cubil_Painter : MonoBehaviour
 
     void UserInput()
     {
+        ManageCamera();
 
-        m_Input = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        m_Input = Camera.main.ScreenToWorldPoint(Input.mousePosition - new Vector3(0, 0, transform.position.z));
 
-        m_Input2 = Camera.main.ScreenPointToRay(Input.mousePosition);
+        ray = new Ray(transform.position, Vector3.Normalize(m_Input));
 
-        rayLength = transform.position.magnitude;
+        float ratio = Camera.main.fieldOfView / (Camera.main.fieldOfView / m_Input.z);
 
-        //Vector3 dir = transform.InverseTransformDirection(m_Input2);
+        Vector3 dir = Vector3.Normalize (m_Input - transform.position) * ratio;
 
-        Debug.DrawRay(transform.position, m_Input2.direction * rayLength);
+        Debug.DrawRay(transform.position, dir);
 
         float sp_X = g_Utils.roundNearest(m_Input.x, m_Input.x / 15);
         float sp_Y = g_Utils.roundNearest(m_Input.y, m_Input.y / 15);
@@ -74,15 +74,7 @@ public class Cubil_Painter : MonoBehaviour
 
         Vector3 sp = new Vector3(sp_X + .5f, sp_Y + .5f, sp_Z);
 
-        Vector3 intersection = transform.position + transform.TransformDirection((m_Input2.direction * rayLength));
-
-        float sp_X_2 = g_Utils.roundNearest(intersection.x, intersection.x / 15);
-        float sp_Y_2 = g_Utils.roundNearest(intersection.y, intersection.y / 15);
-        float sp_Z_2 = g_Utils.roundNearest(intersection.z, intersection.z / 15);
-
-        sp2 = new Vector3(sp_X_2 + .5f, sp_Y_2 + .5f, sp_Z_2);
-
-        bool pointInCube = g_Utils.pointInCube(sp2, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
+        bool pointInCube = g_Utils.pointInCube(sp, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
         if (pointInCube)
         {
@@ -125,6 +117,47 @@ public class Cubil_Painter : MonoBehaviour
         }
         //ColorCronenCells();
     }
+    
+
+    void ManageCamera()
+    {       
+        if (Input.GetKeyDown(KeyCode.Keypad5))
+            Camera.main.orthographic = !Camera.main.orthographic;
+
+        if (Input.GetKeyDown(KeyCode.Keypad4))
+            RotateCameraY(-90);
+
+        if (Input.GetKeyDown(KeyCode.Keypad6))
+            RotateCameraY(+90);
+
+        if (Input.GetKeyDown(KeyCode.Keypad8))
+            RotateCameraX(+90);
+
+        if (Input.GetKeyDown(KeyCode.Keypad2))
+            RotateCameraX(-90);
+    }
+
+    void RotateCameraY(float angle)
+    {
+        float x1 = (transform.position.x * Mathf.Cos(angle) - transform.position.z * Mathf.Sin(angle));
+        float z1 = (transform.position.z * Mathf.Cos(angle) + transform.position.x * Mathf.Sin(angle));
+
+        transform.position = new Vector3(x1, transform.position.y, z1);
+        //transform.LookAt(new Vector3(8, 8, 8));
+        //if (Math.Sign(angle) == -1)
+        //    //Debug.Log("Going Down");
+        //else
+        //    //Debug.Log("Going Up");
+    }
+
+    void RotateCameraX(float angle)
+    {
+        //if (Math.Sign(angle) == -1)
+        //    //Debug.Log("Going Left");
+        //else
+        //    //Debug.Log("Going Right");
+    }
+
 
     void FindCronenEdgeQuads()
     {
@@ -255,7 +288,7 @@ public class Cubil_Painter : MonoBehaviour
 
     Vertex GetSideVertex(Vertex _innerVertex, int index)
     {
-        Vector3 vert = new Vector3(intesectingQuad.vertexPoints[index].vertice.x, _innerVertex.vertice.y, 1.299988f);
+        Vector3 vert = new Vector3(intesectingQuad.vertexPoints[index].vertice.x, _innerVertex.vertice.y, _innerVertex.vertice.z);
         Vertex Sidevertex = new Vertex(vert, _innerVertex.normal, _innerVertex.centre);
 
         return Sidevertex;
@@ -263,7 +296,7 @@ public class Cubil_Painter : MonoBehaviour
 
     Vertex GetOppVertex(Vertex _innerVertex, int index)
     {
-        Vector3 vert2 = new Vector3(_innerVertex.vertice.x, intesectingQuad.vertexPoints[index].vertice.y, 1.299988f);
+        Vector3 vert2 = new Vector3(_innerVertex.vertice.x, intesectingQuad.vertexPoints[index].vertice.y, _innerVertex.vertice.z);
         Vertex Oppvertex = new Vertex(vert2, _innerVertex.normal, _innerVertex.centre);
 
         return Oppvertex;
@@ -275,12 +308,12 @@ public class Cubil_Painter : MonoBehaviour
         int oppIndex = (index % 2 == 0) ? index + 1 : index - 1;
         int sideIndex = (index + 2) % 4;
 
-        Vector3 vert = new Vector3(intesectingQuad.vertexPoints[index].vertice.x, _innerVertex.vertice.y, 1.299988f);
+        Vector3 vert = new Vector3(intesectingQuad.vertexPoints[index].vertice.x, _innerVertex.vertice.y, _innerVertex.vertice.z);
         Vertex Sidevertex = new Vertex(vert, _innerVertex.normal, _innerVertex.centre);
         
         if(Mathf.Abs((_innerVertex.vertice.x - Sidevertex.vertice.x)) == 0) { return; }
 
-        Vector3 vert2 = new Vector3(_innerVertex.vertice.x, intesectingQuad.vertexPoints[index].vertice.y, 1.299988f);
+        Vector3 vert2 = new Vector3(_innerVertex.vertice.x, intesectingQuad.vertexPoints[index].vertice.y, _innerVertex.vertice.z);
         Vertex Oppvertex = new Vertex(vert2, _innerVertex.normal, _innerVertex.centre);
 
         if (Mathf.Abs((_innerVertex.vertice.y - Oppvertex.vertice.y)) == 0) { return; }
@@ -750,10 +783,8 @@ public class Cubil_Painter : MonoBehaviour
             //F(x y) = (y2 - y1) * x + (x1 - x2) * y + (x2 * y1 - x1 * y2)
 
 
-            Vector3 intersection = transform.position + (m_Input2.direction * rayLength);
-                //g_Utils.lineIntersect(transform.position, m_Input2.direction * rayLength, new Vector3(0, 0, 0), new Vector3(0, 16, 0));
-
-            Gizmos.DrawSphere(sp2, .25f);
+            Vector3 intersection = transform.position + (ray.direction * rayLength);
+            Gizmos.DrawSphere(intersection, .25f);
 
             //Debug.Log(sp2);
 

@@ -218,10 +218,10 @@ public class Quad
     {
         return new Vertex[]
         {
-            new Vertex(new Vector3(-.5f, -.5f, .5f) + c, _dir, c), //0
-            new Vertex(new Vector3(+.5f, -.5f, .5f) + c, _dir, c), //1
-            new Vertex(new Vector3(-.5f, +.5f, .5f) + c, _dir, c), //2
-            new Vertex(new Vector3(+.5f, +.5f, .5f) + c, _dir, c)  //3 
+            new Vertex(new Vector3(-.5f, -.5f, 0.0f) + c, _dir, c), //0
+            new Vertex(new Vector3(+.5f, -.5f, 0.0f) + c, _dir, c), //1
+            new Vertex(new Vector3(-.5f, +.5f, 0.0f) + c, _dir, c), //2
+            new Vertex(new Vector3(+.5f, +.5f, 0.0f) + c, _dir, c)  //3 
         };
     }
 
