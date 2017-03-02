@@ -125,37 +125,51 @@ public class Cubil_Painter : MonoBehaviour
             Camera.main.orthographic = !Camera.main.orthographic;
 
         if (Input.GetKeyDown(KeyCode.Keypad4))
-            RotateCameraY(-90);
+            RotateCameraY(-(Mathf.PI/2));
 
         if (Input.GetKeyDown(KeyCode.Keypad6))
-            RotateCameraY(+90);
+            RotateCameraY(+Mathf.PI / 2);
 
         if (Input.GetKeyDown(KeyCode.Keypad8))
-            RotateCameraX(+90);
+            RotateCameraX(+Mathf.PI / 2);
 
         if (Input.GetKeyDown(KeyCode.Keypad2))
-            RotateCameraX(-90);
+            RotateCameraX(-(Mathf.PI / 2));
     }
 
     void RotateCameraY(float angle)
     {
-        float x1 = (transform.position.x * Mathf.Cos(angle) - transform.position.z * Mathf.Sin(angle));
-        float z1 = (transform.position.z * Mathf.Cos(angle) + transform.position.x * Mathf.Sin(angle));
 
-        transform.position = new Vector3(x1, transform.position.y, z1);
-        //transform.LookAt(new Vector3(8, 8, 8));
-        //if (Math.Sign(angle) == -1)
-        //    //Debug.Log("Going Down");
-        //else
-        //    //Debug.Log("Going Up");
+        float s = Mathf.Sin(angle);
+        float c = Mathf.Cos(angle);
+
+        float dx = transform.position.x - 8f;
+        float dz = transform.position.z - 8f;
+
+        float x1 = (dx * c) - (dz * s);
+        float z1 = (dz * c) + (dx * s);
+
+        Vector3 newVec = new Vector3(x1 + 8, transform.position.y, z1 + 8);
+        transform.position = newVec;
+
+        transform.LookAt(new Vector3(8, 8, 8));
     }
 
     void RotateCameraX(float angle)
     {
-        //if (Math.Sign(angle) == -1)
-        //    //Debug.Log("Going Left");
-        //else
-        //    //Debug.Log("Going Right");
+        float s = Mathf.Sin(angle);
+        float c = Mathf.Cos(angle);
+
+        float dy = transform.position.y - 8f;
+        float dz = transform.position.z - 8f;
+
+        float y1 = (dy * c) - (dz * s);
+        float z1 = (dz * c) + (dy * s);
+
+        Vector3 newVec = new Vector3(transform.position.x, y1 + 8, z1 + 8);
+        transform.position = newVec;
+
+        transform.LookAt(new Vector3(8, 8, 8));
     }
 
 
@@ -826,6 +840,9 @@ public class Cubil_Painter : MonoBehaviour
             }
             //for (int i = 0; i < antiQuadList.Count; i++)
             //    antiQuadList[i].DrawQuad(.1f);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(new Vector3(8f, 8f, 8f), 1f);
 
         }
     }
