@@ -9,6 +9,8 @@ public class Cubil_Painter : MonoBehaviour
 {
     public Color GridColor, EditorCubeColor, DebugCubilMergeColor;
 
+    public CronenbergQuad selectedBerg;
+
     public Color[] cronenColors, customColors;
 
     Mesh CubilMesh;
@@ -38,7 +40,7 @@ public class Cubil_Painter : MonoBehaviour
 
     Vector3 m_Input;
     Ray ray;
-
+    public bool x, pointInCube;
     float rayLength;
 
     void Awake()
@@ -52,19 +54,16 @@ public class Cubil_Painter : MonoBehaviour
     void Update()
     {       
         UserInput();
+
     }
 
-    void UserInput()
+    Vector3 ManageMouseInput()
     {
-        ManageCamera();
-
         m_Input = Camera.main.ScreenToWorldPoint(Input.mousePosition - new Vector3(0, 0, transform.position.z));
-
         ray = new Ray(transform.position, Vector3.Normalize(m_Input));
-
         float ratio = Camera.main.fieldOfView / (Camera.main.fieldOfView / m_Input.z);
 
-        Vector3 dir = Vector3.Normalize (m_Input - transform.position) * ratio;
+        Vector3 dir = Vector3.Normalize(m_Input - transform.position) * ratio;
 
         Debug.DrawRay(transform.position, dir);
 
@@ -72,9 +71,58 @@ public class Cubil_Painter : MonoBehaviour
         float sp_Y = g_Utils.roundNearest(m_Input.y, m_Input.y / 15);
         float sp_Z = m_Input.z;//g_Utils.roundNearest(m_Input.z, (m_Input.z) % 15);
 
-        Vector3 sp = new Vector3(sp_X + .5f, sp_Y + .5f, sp_Z);
+        return new Vector3(sp_X + .5f, sp_Y + .5f, sp_Z);
+    }
 
-        bool pointInCube = g_Utils.pointInCube(sp, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
+    void UserInput()
+    {
+        TransformFace();
+        FaceConstruction();
+        ManageCamera();
+        //ColorCronenCells();
+    }
+    
+    void TransformFace()
+    {
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            MoveCronen(new Vector3(0, +1, 0));
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            MoveCronen(new Vector3(0, -1, 0));
+        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            MoveCronen(new Vector3(-1, 0, 0));
+        }
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            MoveCronen(new Vector3(+1, 0, 0));
+        }
+    }
+
+    void MoveCronen(Vector3 c)
+    {
+        if (CronenbergList[0].CheckQuadInCube(c))
+        {
+            CronenbergList[0].UpdateCronenVertices(c);
+        }
+
+        UpdateCronenConvex();
+
+        int _j = 0;
+
+        for (int i = 0; i < CronenbergList.Count; i++)
+        {
+            ManageCronenMerge(i, _j);
+        }
+    }
+
+    void FaceConstruction()
+    {
+        Vector3 sp = ManageMouseInput();
+        pointInCube = g_Utils.pointInCube(sp, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
         if (pointInCube)
         {
@@ -82,16 +130,13 @@ public class Cubil_Painter : MonoBehaviour
             { QuadCheck(); }
 
             CheckForInterSectingQuads();
-
-            mockQuad.UpdateQuad(sp);
-            FaceInPoint(sp);
+            mockQuad.SetQuad(sp);
 
             if (!FaceInPoint(sp))
             {
                 if (Input.GetMouseButton(0))
                 {
                     CreateNewQuad(sp);
-                    CreateMesh();
                 }
             }
             else if (FaceInPoint(sp))
@@ -102,39 +147,58 @@ public class Cubil_Painter : MonoBehaviour
                 }
             }
 
-            mockQuad.UpdateQuad(sp);
             ColorCronen();
             FindCronenEdgeQuads();
-
-            if (QuadList.Count != 0)
-            {
-                SetConvexQuad();
-                CalculateConvexInformation();
-                CalculateTotalQuadArea();
-                CheckConvexQuad();
-            }
-
+            UpdateCronenConvex();
+            CreateMesh();
         }
-        //ColorCronenCells();
     }
-    
+
+    void UpdateCronenConvex()
+    {
+        if (QuadList.Count != 0)
+        {
+            SetConvexQuad();
+            CalculateConvexInformation();
+            CalculateTotalQuadArea();
+            CheckConvexQuad();
+        }
+    }
 
     void ManageCamera()
-    {       
+    {
         if (Input.GetKeyDown(KeyCode.Keypad5))
             Camera.main.orthographic = !Camera.main.orthographic;
 
         if (Input.GetKeyDown(KeyCode.Keypad4))
-            RotateCameraY(-(Mathf.PI/2));
+        {
+            x = !x;
+            RotateCameraY(-(Mathf.PI / 2));
+        }
 
         if (Input.GetKeyDown(KeyCode.Keypad6))
+        {
+            x = !x;
             RotateCameraY(+Mathf.PI / 2);
+        }
 
         if (Input.GetKeyDown(KeyCode.Keypad8))
+        {
+            if(!x)       
             RotateCameraX(+Mathf.PI / 2);
+            else
+            RotateCameraZ(+Mathf.PI / 2);
+        }
+
 
         if (Input.GetKeyDown(KeyCode.Keypad2))
-            RotateCameraX(-(Mathf.PI / 2));
+        {
+            if (!x)
+            RotateCameraX(-Mathf.PI / 2);
+            else
+            RotateCameraZ(-Mathf.PI / 2);
+        }
+
     }
 
     void RotateCameraY(float angle)
@@ -172,6 +236,22 @@ public class Cubil_Painter : MonoBehaviour
         transform.LookAt(new Vector3(8, 8, 8));
     }
 
+    void RotateCameraZ(float angle)
+    {
+        float s = Mathf.Sin(angle);
+        float c = Mathf.Cos(angle);
+
+        float dy = transform.position.y - 8f;
+        float dx = transform.position.x - 8f;
+
+        float y1 = (dy * c) - (dx * s);
+        float x1 = (dx * c) + (dy * s);
+
+        Vector3 newVec = new Vector3(x1 + 8, y1 + 8, transform.position.z);
+        transform.position = newVec;
+
+        transform.LookAt(new Vector3(8, 8, 8));
+    }
 
     void FindCronenEdgeQuads()
     {
@@ -437,34 +517,7 @@ public class Cubil_Painter : MonoBehaviour
                 }
                 else
                 {
-                    for (int j = 0; j < CronenbergList.Count; j++)
-                    {
-                        if (CronenbergList[i] == CronenbergList[j])
-                        {
-                            continue;
-                        }
-
-                        if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-                        {
-                            if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
-                        }
-
-                        if (intersectingCronens.Count < 1)
-                        {
-                            //Debug.Log(intersectingCronens.Count);
-                        }
-                        else
-                        {
-                            if (intersectingCronens.Count != 0)
-                            {
-                                for (int k = 0; k < intersectingCronens.Count; k++)
-                                {
-                                    if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
-                                }
-                            }
-                        }
-                    }
-
+                    ManageCronenMerge(i, _j);
                     status = true;
                 }
             }
@@ -472,6 +525,37 @@ public class Cubil_Painter : MonoBehaviour
 
         intersectingCronens.Clear();
         return status;
+    }
+
+    void ManageCronenMerge(int i, int _j)
+    {
+        for (int j = 0; j < CronenbergList.Count; j++)
+        {
+            if (CronenbergList[i] == CronenbergList[j])
+            {
+                continue;
+            }
+
+            if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
+            {
+                if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
+            }
+
+            if (intersectingCronens.Count < 1)
+            {
+                //Debug.Log(intersectingCronens.Count);
+            }
+            else
+            {
+                if (intersectingCronens.Count != 0)
+                {
+                    for (int k = 0; k < intersectingCronens.Count; k++)
+                    {
+                        if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
+                    }
+                }
+            }
+        }
     }
 
     void RemoveFromCronen(Quad Q0)

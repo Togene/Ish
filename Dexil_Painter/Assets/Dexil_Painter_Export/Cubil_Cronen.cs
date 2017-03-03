@@ -395,6 +395,21 @@ public class CronenbergQuad
         return false;
     }
 
+    public bool CheckQuadInCube(Vector3 c)
+    {
+        bool status = false;
+
+        for (int i = 0; i < cronenQuadList.Count; i++)
+        {
+            if(cronenQuadList[i].CheckVertexCube(c))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool CheckVertexMatch(Vector3 v)
     {
         for (int i = 0; i < cronenQuadList.Count; i++)
@@ -538,7 +553,7 @@ public class CronenbergQuad
                 Vertex newVert = new Vertex();
                 Vector3 vertice = new Vector3(i, j, CronenConvexQuad.vertexPoints[0].vertice.z);
                 newVert.vertice = vertice;
-                newVert.col = Color.yellow;
+                newVert.col = Color.magenta;
 
                 if ((!CheckPointInQuadExludingBorder(vertice)) && (!CheckPointPinchInCronen(vertice, 2, true)))
                 {
@@ -591,6 +606,8 @@ public class CronenbergQuad
 
     public void CalculateConvexInformation()
     {
+        CronenConvexQuad = new Quad();
+
         if (cronenQuadList.Count <= 1)
         {
             SetConvexQuad();
@@ -664,6 +681,14 @@ public class CronenbergQuad
         CronenConvexQuad.CalculateQuadArea();
     }
 
+    public void UpdateCronenVertices(Vector3 c)
+    {
+        for(int i = 0; i < cronenQuadList.Count; i++)
+        {
+            cronenQuadList[i].UpdateQuad(c);
+        }
+    }
+
     public void DrawConvexQuad()
     {
         if (CronenConvexQuad != null)
@@ -678,7 +703,7 @@ public class CronenbergQuad
         {
             Gizmos.color = CronenEdgeVertices[i].col;
             //Gizmos.color = cols[i % cols.Length];
-            Gizmos.DrawCube(CronenEdgeVertices[i].vertice, new Vector3(.1f, .1f, .1f));
+            Gizmos.DrawCube(CronenEdgeVertices[i].vertice, new Vector3(.2f, .2f, .2f));
         }
     }
 
