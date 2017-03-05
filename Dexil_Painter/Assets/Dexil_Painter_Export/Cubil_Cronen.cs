@@ -395,19 +395,9 @@ public class CronenbergQuad
         return false;
     }
 
-    public bool CheckQuadInCube(Vector3 c)
+    public bool CheckCroneneConvexInBounds(Vector3 c)
     {
-        bool status = false;
-
-        for (int i = 0; i < cronenQuadList.Count; i++)
-        {
-            if(cronenQuadList[i].CheckVertexCube(c))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return true;
     }
 
     public bool CheckVertexMatch(Vector3 v)

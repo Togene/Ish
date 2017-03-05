@@ -182,42 +182,6 @@ public class Quad
         vertexPoints[2].SetVert(c);
         vertexPoints[3].SetVert(c);
     }
-
-    public bool CheckVertexCube(Vector3 c)
-    {
-
-        Vector3 b0 = new Vector3(0f, 0f, 0f);
-        Vector3 t0 = new Vector3(16f, 16f, 16f);
-
-        Vector3 v0 = vertexPoints[0].vertice + c;
-        Vector3 v1 = vertexPoints[1].vertice + c;
-        Vector3 v2 = vertexPoints[2].vertice + c;
-        Vector3 v3 = vertexPoints[3].vertice + c;
-
-
-        if (BorderCheck(v0, b0, t0))
-        {
-            return true;
-        }
-
-         if (BorderCheck(v1, b0, t0))
-        {
-            return true;
-        }
-
-         if(BorderCheck(v2, b0, t0))
-        {
-            return true;
-        }
-
-         if(BorderCheck(v3, b0, t0))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
     bool BorderCheck(Vector3 v, Vector3 b0, Vector3 t0)
     {
         return (g_Utils.pointInCube(v, b0, t0));
