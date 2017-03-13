@@ -104,11 +104,11 @@ public class Cubil_Painter : MonoBehaviour
 
     void MoveCronen(Vector3 c)
     {
-        if (CronenbergList[0].CheckQuadInCube(c))
-        {
-            CronenbergList[0].UpdateCronenVertices(c);
-        }
-
+        //if (CronenbergList[0].CheckQuadInCube(c))
+        //{
+        //    CronenbergList[0].UpdateCronenVertices(c);
+        //}
+        //
         UpdateCronenConvex();
 
         int _j = 0;
