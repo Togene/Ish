@@ -187,6 +187,13 @@ public class Quad
         return (g_Utils.pointInCube(v, b0, t0));
     }
 
+    public void CalculateCentre()
+    {
+        this.centre = new Vector3(Mathf.Abs((vertexPoints[0].vertice.x + vertexPoints[1].vertice.x) / 2),
+                                  Mathf.Abs((vertexPoints[0].vertice.y + vertexPoints[2].vertice.y) / 2),
+                                  vertexPoints[0].vertice.z);
+    }
+
     public Quad MergeQuads(Quad right, int[] leftIndices, Color _color)
     {
         Quad newQuad = create(centre, new Vector3(0, 0, 0)); //new Quad(centre, new Vector3(0, 0, 0));

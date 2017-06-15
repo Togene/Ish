@@ -7,60 +7,253 @@ using System;
 
 public class Cubil_Painter : MonoBehaviour
 {
-    public Color GridColor, EditorCubeColor, DebugCubilMergeColor;
-
-    public CronenbergQuad selectedBerg;
-
-    public Color[] cronenColors, customColors;
+    //public CronenbergQuad selectedBerg;
 
     Mesh CubilMesh;
-    public GameObject Cubil;
+    GameObject Cubil;
 
-    public Quad mockQuad, intesectingQuad, ConvexQuad;
+    Quad intesectingQuad;
 
-    public List<Quad> QuadList = new List<Quad>();
-
-    List<Quad> IntersectingQuadList = new List<Quad>();
-
-    public List<Quad> antiQuadList = new List<Quad>(); 
-
-    public List<Vertex> intersectingVertices = new List<Vertex>(); public List<Vertex> antiVertices = new List<Vertex>();
-
+    List<Quad> IntersectingQuadList = new List<Quad>(); List<Quad> antiQuadList = new List<Quad>();
+    List<Vertex> intersectingVertices = new List<Vertex>(); public List<Vertex> antiVertices = new List<Vertex>();
     List<CronenbergQuad> intersectingCronens = new List<CronenbergQuad>();
 
-    public List<CronenbergQuad> CronenbergList = new List<CronenbergQuad>();
-
     List<int> indexLeft = new List<int>(); List<int> indexRight = new List<int>();
-
-    public float TotalArea;
-
-    public int iterations;
-
     Vector3[,] Grid;
-
     Vector3 m_Input;
-    Ray ray;
-    public bool x, pointInCube;
-    float rayLength;
+    //Ray ray;
+    public Quad BigBoy;
+    bool x;
+
+    //public List<QuadList> histogramList = new List<QuadList>();
+
+    public bool ColorRegions, pointInCube, UPDATE;
+    public List<CronenbergQuad> CronenbergList = new List<CronenbergQuad>();
+    public List<Quad> QuadList = new List<Quad>();
+    public float TotalArea;
+    public int iterations;
+    public Color[] cronenColors, customColors; //Color Information
+    public Color GridColor, EditorCubeColor, DebugCubilMergeColor, QuadColor;
+    public Quad SelectedQuad, ConvexQuad;
+    public float highestQuad;
+    //float rayLength;
+
+    private Vertex BigBoyBottomLeft, BigBoyBottomRight, 
+                  BigBoyRightSideBottom, BigBoyRightSideTop,
+                  BigBoyLeftSideBottom, BigBoyLeftSideTop,
+                  BigBoyTopLeft, BigBoyTopRight;
+
+    public List<Vertex> segmentIntersectionRightVertices = new List<Vertex>();
+    public List<Vertex> segmentIntersectionLeftVertices = new List<Vertex>();
+    public List<Vertex> segmentIntersectionBottomVertices = new List<Vertex>();
+    public List<Vertex> segmentIntersectionTopVertices = new List<Vertex>();
 
     void Awake()
     {
         ConvexQuad = new Quad();
-        mockQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
+        SelectedQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
         CubilMesh = new Mesh();
         CreateGrid(25, 25);
+        Cubil = FindObjectOfType<MeshFilter>().gameObject;
     }
 
     void Update()
-    {       
+    {
         UserInput();
+    }
+
+    void BigBoyAssimulation() //Handles Bigger Quads simplifying the Mesh
+    {
+
+        if (QuadList.Count > 1)
+            BigBoy = QuadList[0]; //if sorted right this should be the largest Area
+
+        for (int i = 0; i < QuadList.Count; i++)
+        {
+            QuadList[i].quadColor = Color.white;
+        }
+
+        BigBoy.quadColor = Color.black;
+
+        if (BigBoy.area > 1)
+        {
+            CheckBigBoySides(BigBoy);
+        }
+
+    }
+
+    void CheckBigBoySides(Quad BigBoy)
+    {
+        BigBoyBottomLeft      = null;
+        BigBoyBottomRight     = null;
+
+        BigBoyRightSideBottom = null;
+        BigBoyRightSideTop    = null;
+
+        BigBoyLeftSideBottom  = null;
+        BigBoyLeftSideTop     = null;
+
+        BigBoyTopLeft         = null;
+        BigBoyTopRight        = null;
+
+        segmentIntersectionRightVertices = new List<Vertex>();
+        segmentIntersectionLeftVertices = new List<Vertex>();
+        segmentIntersectionBottomVertices = new List<Vertex>();
+        segmentIntersectionTopVertices = new List<Vertex>();
+
+        BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0,0,1), BigBoy.centre);
+        BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+        BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+        BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+        BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+        for(int i = 0; i < QuadList.Count; i++)
+        {
+
+            if (QuadList[i] == BigBoy)
+                continue;
+
+            Vertex bb0 = BigBoy.vertexPoints[0];
+            Vertex bb1 = BigBoy.vertexPoints[1];
+            Vertex bb2 = BigBoy.vertexPoints[2];
+            Vertex bb3 = BigBoy.vertexPoints[3];
+
+            //RightSide 
+            EvaluateVerticalIntersection(QuadList[i], bb1, bb3, BigBoyRightSideTop, BigBoyRightSideBottom, segmentIntersectionRightVertices);
+
+            //BottomSide
+            EvaluateHorizontalIntersection(QuadList[i], bb0, bb1, BigBoyBottomRight, BigBoyBottomLeft, segmentIntersectionBottomVertices);
+
+            //LeftSide 
+            EvaluateVerticalIntersection(QuadList[i], bb0, bb2, BigBoyLeftSideTop, BigBoyLeftSideBottom, segmentIntersectionLeftVertices);
+
+            //TopSide
+            EvaluateHorizontalIntersection(QuadList[i], bb2, bb3, BigBoyTopRight, BigBoyTopLeft, segmentIntersectionTopVertices);
+
+        }
+
+    }
+
+    Vertex SegmentIntersection(Vertex p0, Vertex p1, Vertex p2, Vertex p3)
+    {
+        //A1 is the change in Y
+        //B1 is the change in X
+
+        //Ax + By = C  => Standard Form
+
+        float A1 = p1.vertice.y - p0.vertice.y;
+        float B1 = p0.vertice.x - p1.vertice.x;
+        float C1 = A1 * p0.vertice.x + B1 * p0.vertice.y;
+
+
+        float A2 = p3.vertice.y - p2.vertice.y;
+        float B2 = p2.vertice.x - p3.vertice.x;
+        float C2 = A2 * p2.vertice.x + B2 * p2.vertice.y;
+               
+        float denominator = A1 * B2 - A2 * B1; /// _/
+
+        float sectX = (B2 * C1 - B1 * C2) / denominator;
+        float sectY = (A1 * C2 - A2 * C1) / denominator;
+
+        float rx0 = (sectX - p0.vertice.x) / (p1.vertice.x - p0.vertice.x),
+              ry0 = (sectY - p0.vertice.y) / (p1.vertice.y - p0.vertice.y);
+
+        float rx1 = (sectX - p2.vertice.x) / (p3.vertice.x - p2.vertice.x),
+              ry1 = (sectY - p2.vertice.y) / (p3.vertice.y - p2.vertice.y);
+
+        if (((rx0 >= 0 && rx0 <= 1) || (ry0 >= 0 && ry0 <= 1)) && ((rx1 >= 0 && rx1 <= 1) || (ry1 >= 0 && ry1 <= 1)))
+        {
+            return new Vertex(new Vector3(sectX, sectY, p0.vertice.z), new Vector3(0, 0, 1), p3.centre);
+        }
+        else
+            return null; 
+
+    } 
+
+    void EvaluateVerticalIntersection(Quad q, Vertex bb0, Vertex bb1, Vertex BB0, Vertex BB1, List<Vertex> list)
+    {
+        Vertex p0 = q.vertexPoints[0];
+        Vertex p1 = q.vertexPoints[1];
+        Vertex p2 = q.vertexPoints[2];
+        Vertex p3 = q.vertexPoints[3];
+
+
+        Vertex r0 = SegmentIntersection(p1, p3, bb1, BB0);
+        Vertex r1 = SegmentIntersection(p1, p3, bb0, BB1);
+
+
+        Vertex r2 = SegmentIntersection(p0, p2, bb1, BB0);
+        Vertex r3 = SegmentIntersection(p0, p2, bb0, BB1);
+
+        if (r0 != null)
+        {
+            if (!list.Contains(r0)) list.Add(r0);
+        }
+
+        if (r1 != null)
+        {
+            if (!list.Contains(r1)) list.Add(r1);
+        }
+
+        if (r2 != null)
+        {
+            if (!list.Contains(r2)) list.Add(r2);
+        }
+
+        if (r3 != null)
+        {
+            if (!list.Contains(r3)) list.Add(r3);
+        }
+
+    }
+
+    void EvaluateHorizontalIntersection(Quad q, Vertex bb0, Vertex bb1, Vertex BB0, Vertex BB1, List<Vertex> list)
+    {
+        Vertex p0 = q.vertexPoints[0];
+        Vertex p1 = q.vertexPoints[1];
+        Vertex p2 = q.vertexPoints[2];
+        Vertex p3 = q.vertexPoints[3];
+
+
+        Vertex r0 = SegmentIntersection(p0, p1, bb1, BB0);
+        Vertex r1 = SegmentIntersection(p0, p1, bb0, BB1);
+
+
+        Vertex r2 = SegmentIntersection(p2, p3, bb1, BB0);
+        Vertex r3 = SegmentIntersection(p2, p3, bb0, BB1);
+
+        if (r0 != null)
+        {
+            if (!list.Contains(r0)) list.Add(r0);
+        }
+
+        if (r1 != null)
+        {
+            if (!list.Contains(r1)) list.Add(r1);
+        }
+
+        if (r2 != null)
+        {
+            if (!list.Contains(r2)) list.Add(r2);
+        }
+
+        if (r3 != null)
+        {
+            if (!list.Contains(r3)) list.Add(r3);
+        }
 
     }
 
     Vector3 ManageMouseInput()
     {
         m_Input = Camera.main.ScreenToWorldPoint(Input.mousePosition - new Vector3(0, 0, transform.position.z));
-        ray = new Ray(transform.position, Vector3.Normalize(m_Input));
+        //ray = new Ray(transform.position, Vector3.Normalize(m_Input));
         float ratio = Camera.main.fieldOfView / (Camera.main.fieldOfView / m_Input.z);
 
         Vector3 dir = Vector3.Normalize(m_Input - transform.position) * ratio;
@@ -104,19 +297,19 @@ public class Cubil_Painter : MonoBehaviour
 
     void MoveCronen(Vector3 c)
     {
-        //if (CronenbergList[0].CheckQuadInCube(c))
-        //{
-        //    CronenbergList[0].UpdateCronenVertices(c);
-        //}
-        //
-        UpdateCronenConvex();
-
-        int _j = 0;
-
-        for (int i = 0; i < CronenbergList.Count; i++)
-        {
-            ManageCronenMerge(i, _j);
-        }
+       // if (CronenbergList[0].CheckPointInQuad(c))
+       // {
+       //     CronenbergList[0].UpdateCronenVertices(c);
+       // }
+       // 
+       // UpdateCronenConvex();
+       //
+       // int _j = 0;
+       //
+       // for (int i = 0; i < CronenbergList.Count; i++)
+       // {
+       //     ManageCronenMerge(i, _j);
+       // }
     }
 
     void FaceConstruction()
@@ -126,45 +319,62 @@ public class Cubil_Painter : MonoBehaviour
 
         if (pointInCube)
         {
-            for (int i = 0; i < iterations; i++)
-            { QuadCheck(); }
-
             CheckForInterSectingQuads();
-            mockQuad.SetQuad(sp);
+            SelectedQuad.SetQuad(sp);
 
-            if (!FaceInPoint(sp))
+            if (!PointinFace(sp))
             {
                 if (Input.GetMouseButton(0))
                 {
                     CreateNewQuad(sp);
+                    UPDATE = true;
                 }
             }
-            else if (FaceInPoint(sp))
+            else if (PointinFace(sp))
             {
                 if (Input.GetMouseButton(1))
                 {
                     FractureQuads(sp);
+                    UPDATE = true;
                 }
             }
 
-            ColorCronen();
-            FindCronenEdgeQuads();
-            UpdateCronenConvex();
-            CreateMesh();
+
+            if (UPDATE)
+            {
+                if (ColorRegions)
+                    ColorCronen();
+
+                FindCronenEdgeQuads();
+                UpdateCronenConvex();
+                CreateMesh();
+                MarchingSquaresSearch();
+
+                UPDATE = false;
+            }
+
+            #region Cleanup
+
+            CleanUpQuads(); //First Initial CleanUp
+            QuadList = QuadList.OrderByDescending(o => o.area).ToList(); // Sort From Largest to smallest 
+            BigBoyAssimulation();  //Second Cleanup 
+
+            //---------------------------- CleanUp -----------------------------------------------------
+
+            #endregion
+
+            QuadCalculateCentre();
         }
     }
 
-    void UpdateCronenConvex()
+    void QuadCalculateCentre()
     {
-        if (QuadList.Count != 0)
-        {
-            SetConvexQuad();
-            CalculateConvexInformation();
-            CalculateTotalQuadArea();
-            CheckConvexQuad();
-        }
+        foreach (Quad q in QuadList)
+            q.CalculateCentre();
     }
 
+    #region CameraControls
+    //---------------------------- CameraControls -----------------------------------------------------
     void ManageCamera()
     {
         if (Input.GetKeyDown(KeyCode.Keypad5))
@@ -252,6 +462,21 @@ public class Cubil_Painter : MonoBehaviour
 
         transform.LookAt(new Vector3(8, 8, 8));
     }
+    //---------------------------- CameraControls -----------------------------------------------------
+    #endregion
+
+    #region CronenManagment 
+    //---------------------------- CronenManagment -----------------------------------------------------
+    void UpdateCronenConvex()
+    {
+        if (QuadList.Count != 0)
+        {
+            SetConvexQuad();
+            CalculateConvexInformation();
+            CalculateTotalQuadArea();
+            CheckConvexQuad();
+        }
+    }
 
     void FindCronenEdgeQuads()
     {
@@ -264,23 +489,152 @@ public class Cubil_Painter : MonoBehaviour
         }
     }
 
-    void CheckForInterSectingQuads()
+    void ColorCronen()
     {
-        if (QuadList.Count != 0)
+        if (CronenbergList.Count != 0)
         {
-            for (int i = 0; i < QuadList.Count; i++)
+            for (int i = 0; i < CronenbergList.Count; i++)
             {
-                if (IntersectingVertices(QuadList[i], mockQuad))
+                for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
                 {
-                    if (!IntersectingQuadList.Contains(QuadList[i]))
-                        IntersectingQuadList.Add(QuadList[i]);
+                    Color col = cronenColors[i % cronenColors.Length];
+
+                    CronenbergList[i].cronenQuadList[j].quadColor = col;
                 }
             }
-
-            IntersectingQuadList.Clear();
         }
     }
 
+    void ColorCronenCells()
+    {
+        if (CronenbergList.Count != 0)
+        {
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                CronenbergList[i].ColorCells(cronenColors);
+            }
+        }
+    }
+
+    void EvalauteCronens()
+    {
+        if (CronenbergList.Count != 0)
+        {
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                CronenbergList[i].EvalauteCronen(CronenbergList);
+
+                for (int j = 0; j < CronenbergList.Count; j++)
+                {
+                    if (CronenbergList[i] == CronenbergList[j])
+                        continue;
+
+                    if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
+                    {
+                        Debug.Log("There Touching Again");
+                    }
+                }
+            }
+        }
+    }
+
+    bool CheckAndManageBrokenCronenBergs(Quad Qinterecpt, Quad Q1)
+    {
+        if (CronenbergList.Count != 0)
+        {
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                if (CronenbergList[i].FractorCronenQuads(Qinterecpt, Q1, CronenbergList))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    void CheckAndIniatiateChainCheckBergs(Quad Q0, Quad Q1, Quad Qmerged)
+    {
+        if (CronenbergList.Count != 0)
+        {
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                CronenbergList[i].MergeCronenQuads(Q0, Q1, Qmerged);
+            }
+        }
+    }
+
+    bool CheckCronenContainsBergsForInterSection(Quad Q0)
+    {
+        bool status = false;
+        int _j = 0;
+
+        if (CronenbergList.Count != 0)
+        {
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                if (!CronenbergList[i].IntersectingWithCronen(Q0))
+                {
+                }
+                else
+                {
+                    ManageCronenMerge(i, _j);
+                    status = true;
+                }
+            }
+        }
+
+        intersectingCronens.Clear();
+        return status;
+    }
+
+    void ManageCronenMerge(int i, int _j)
+    {
+        for (int j = 0; j < CronenbergList.Count; j++)
+        {
+            if (CronenbergList[i] == CronenbergList[j])
+            {
+                continue;
+            }
+
+            if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
+            {
+                if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
+            }
+
+            if (intersectingCronens.Count < 1)
+            {
+                //Debug.Log(intersectingCronens.Count);
+            }
+            else
+            {
+                if (intersectingCronens.Count != 0)
+                {
+                    for (int k = 0; k < intersectingCronens.Count; k++)
+                    {
+                        if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
+                    }
+                }
+            }
+        }
+    }
+
+    void RemoveFromCronen(Quad Q0)
+    {
+        if (CronenbergList.Count != 0)
+        {
+            for (int i = 0; i < CronenbergList.Count; i++)
+            {
+                if (CronenbergList[i].CheckCronenContains(Q0)) CronenbergList[i].Remove(Q0);
+            }
+        }
+    }
+    //---------------------------- CronenManagment -----------------------------------------------------
+    #endregion
+
+    #region Removing Quads
+    // ------------------------------------------------ Removing Quads -----------------------------------------------------------------
     void FractureQuads(Vector3 sp)
     {
         Quad newAntiQuad = new Quad(sp, new Vector3(0, 0, -1));
@@ -426,150 +780,28 @@ public class Cubil_Painter : MonoBehaviour
         antiVertices.Add(Sidevertex);
         antiVertices.Add(Oppvertex);
     }
+    // ------------------------------------------------ Removing Quads -----------------------------------------------------------------
 
-    void ColorCronen()
+    #endregion
+
+    void CheckForInterSectingQuads()
     {
-        if (CronenbergList.Count != 0)
+        if (QuadList.Count != 0)
         {
-            for (int i = 0; i < CronenbergList.Count; i++)
+            for (int i = 0; i < QuadList.Count; i++)
             {
-                for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
+                if (IntersectingVertices(QuadList[i], SelectedQuad))
                 {
-                    Color col = cronenColors[i % cronenColors.Length];
-
-                    CronenbergList[i].cronenQuadList[j].quadColor = col;
+                    if (!IntersectingQuadList.Contains(QuadList[i]))
+                        IntersectingQuadList.Add(QuadList[i]);
                 }
             }
+
+            IntersectingQuadList.Clear();
         }
     }
 
-    void ColorCronenCells()
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                CronenbergList[i].ColorCells(cronenColors);
-            }
-        }
-    }
-
-    void EvalauteCronens()
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                CronenbergList[i].EvalauteCronen(CronenbergList);
-
-                for (int j = 0; j < CronenbergList.Count; j++)
-                {
-                    if (CronenbergList[i] == CronenbergList[j])
-                        continue;
-
-                    if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-                    {
-                        Debug.Log("There Touching Again");
-                    }
-                }
-            }
-        }
-    }
-
-    bool CheckAndManageBrokenCronenBergs(Quad Qinterecpt, Quad Q1)
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                if (CronenbergList[i].FractorCronenQuads(Qinterecpt, Q1, CronenbergList))
-                {
-                    return true;
-                }
-            }
-        }
-         
-        return false;
-    }
-
-    void CheckAndIniatiateChainCheckBergs(Quad Q0, Quad Q1, Quad Qmerged)
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                CronenbergList[i].MergeCronenQuads(Q0, Q1, Qmerged);
-            }
-        }
-    }
-
-    bool CheckCronenContainsBergsForInterSection(Quad Q0)
-    {
-        bool status = false;
-        int _j = 0;
-
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                if (!CronenbergList[i].IntersectingWithCronen(Q0))
-                {
-                }
-                else
-                {
-                    ManageCronenMerge(i, _j);
-                    status = true;
-                }
-            }
-        }
-
-        intersectingCronens.Clear();
-        return status;
-    }
-
-    void ManageCronenMerge(int i, int _j)
-    {
-        for (int j = 0; j < CronenbergList.Count; j++)
-        {
-            if (CronenbergList[i] == CronenbergList[j])
-            {
-                continue;
-            }
-
-            if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-            {
-                if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
-            }
-
-            if (intersectingCronens.Count < 1)
-            {
-                //Debug.Log(intersectingCronens.Count);
-            }
-            else
-            {
-                if (intersectingCronens.Count != 0)
-                {
-                    for (int k = 0; k < intersectingCronens.Count; k++)
-                    {
-                        if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
-                    }
-                }
-            }
-        }
-    }
-
-    void RemoveFromCronen(Quad Q0)
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                if (CronenbergList[i].CheckCronenContains(Q0)) CronenbergList[i].Remove(Q0);
-            }
-        }
-    }
-
-    bool FaceInPoint(Vector3 sp)
+    bool PointinFace(Vector3 sp)
     {
         bool status = false;
 
@@ -610,7 +842,7 @@ public class Cubil_Painter : MonoBehaviour
                 {
                     if (left.vertexPoints[i] == right.vertexPoints[j])
                     {
-                        if (!intersectingVertices.Contains( left.vertexPoints[i])) { intersectingVertices.Add(left.vertexPoints[i]); }
+                        if (!intersectingVertices.Contains(left.vertexPoints[i])) { intersectingVertices.Add(left.vertexPoints[i]); }
                         if (!intersectingVertices.Contains(right.vertexPoints[j])) { intersectingVertices.Add(right.vertexPoints[j]); }
                    
                         //if(!indexLeft.Contains(i))
@@ -644,9 +876,60 @@ public class Cubil_Painter : MonoBehaviour
         return status;
     }
 
+    bool InverseIntersectingVertices(Quad left, Quad right)
+    {
+        bool status = false;
+
+        indexLeft.Clear();
+        indexRight.Clear();
+
+        if (left == right)
+            return false;
+
+        for (int i = left.vertexPoints.Length - 1; i > 0; i--)
+        {
+            for (int j = right.vertexPoints.Length - 1; j > 0; j--)
+            {
+                if (left.vertexPoints[i] == right.vertexPoints[j])
+                {
+                    if (!intersectingVertices.Contains(left.vertexPoints[i])) { intersectingVertices.Add(left.vertexPoints[i]); }
+                    if (!intersectingVertices.Contains(right.vertexPoints[j])) { intersectingVertices.Add(right.vertexPoints[j]); }
+
+                    //if(!indexLeft.Contains(i))
+                    { indexLeft.Add(i); }
+                    //if (!indexRight.Contains(j))
+                    { indexRight.Add(j); }
+
+                    status = true;
+
+                }
+                else
+                {
+                    //left.quadColor = left.quadColor;
+                }
+            }
+        }
+
+        if (indexLeft.Count > 2)
+        {
+            Debug.Log("there are 2 or more Quads");
+        }
+
+        if (indexLeft.Count < 2)
+        { status = false; }
+
+        if (indexRight.Count > 2)
+        { Debug.Log("Right Indices Are Max"); }//status = false; }
+
+        intersectingVertices.Clear();
+
+        return status;
+    }
+
     void CreateNewQuad(Vector3 sp)
     {
         Quad newQuad = new Quad(sp, new Vector3(0, 0, -1));
+        newQuad.quadColor = QuadColor;
         QuadList.Add(newQuad);
 
         if(CronenbergList.Count != 0)
@@ -663,14 +946,14 @@ public class Cubil_Painter : MonoBehaviour
         }
     }
 
-    void QuadCheck()
+    void CleanUpQuads()
     {
         Quad currentQuad = new Quad();
         Quad nextQuad = new Quad();
 
-        if (!Input.GetMouseButton(0))
-        {
-            if (QuadList.Count >= 2)
+         QuadList = QuadList.OrderByDescending(o => o.area).ToList();
+
+        if (QuadList.Count >= 2)
             {
                 //Do a Quad Check and Merge
                 for (int i = 0; i < QuadList.Count; i++)
@@ -700,15 +983,32 @@ public class Cubil_Painter : MonoBehaviour
 
                             break;
                         }
-                    }
+                        else if (InverseIntersectingVertices(QuadList[i], QuadList[j]))
+                        {
+                            currentQuad = QuadList[i];
+                            nextQuad = QuadList[j];
+
+                            if (currentQuad.quadColor == Color.white)
+                                currentQuad.quadColor = nextQuad.quadColor;
+
+                            Quad MergedQuad = currentQuad.MergeQuads(nextQuad, indexLeft.ToArray(), currentQuad.quadColor);
+
+                            QuadList.Remove(currentQuad);
+                            QuadList.Remove(nextQuad);
+                            QuadList.Add(MergedQuad);
+
+                            CheckAndIniatiateChainCheckBergs(currentQuad, nextQuad, MergedQuad);
+
+                            break;
+                        }
+                }
                 }
             }
-        }
     
         CreateMesh();
     }
 
-    void FindSquares()
+    void MarchingSquaresSearch()
     {
         //Find Sqaures By Comparing and Sorting threw Cronen outer points...yay
 
@@ -733,18 +1033,18 @@ public class Cubil_Painter : MonoBehaviour
 
     public void CheckConvexQuad()
     {
-        if (ConvexQuad.area == TotalArea && QuadList.Count > 2 && !Input.GetMouseButtonDown(1))
-        {
-            Debug.Log("It Was All Me Baby In The Cronen!");
-
-            QuadList.Clear();
-            CronenbergList.Clear();
-
-            if (!QuadList.Contains(ConvexQuad)) QuadList.Add(ConvexQuad);
-            CronenbergList.Add(new CronenbergQuad(ConvexQuad));
-
-            SetConvexQuad();
-        }
+        //if (ConvexQuad.area == TotalArea && QuadList.Count > 2 && !Input.GetMouseButtonDown(1))
+        //{
+        //    Debug.Log("It Was All Me Baby In The Cronen!");
+        //
+        //    QuadList.Clear();
+        //    CronenbergList.Clear();
+        //
+        //    if (!QuadList.Contains(ConvexQuad)) QuadList.Add(ConvexQuad);
+        //    CronenbergList.Add(new CronenbergQuad(ConvexQuad));
+        //
+        //    SetConvexQuad();
+        //}
     }
 
     public void CalculateConvexInformation()
@@ -828,10 +1128,13 @@ public class Cubil_Painter : MonoBehaviour
         Vector3[] MeshNorms = new Vector3[QuadList.Count * 4];
         Vector3[] MeshVerts = new Vector3[QuadList.Count * 4];
         int[] meshTris = new int[QuadList.Count * 6];
+        Vector2[] uvs = new Vector2[17 * 17];
 
         //Normals and Verts UnPacking
-        for(int i = 0; i < QuadList.Count; i++)
+        for (int i = 0; i < QuadList.Count; i++)
         {
+            uvs[i] = new Vector2(i / (float)16, i / (float)16);
+
             MeshVerts[(i * 4) + 0] = QuadList[i].vertexPoints[0].vertice;
             MeshVerts[(i * 4) + 1] = QuadList[i].vertexPoints[1].vertice;
             MeshVerts[(i * 4) + 2] = QuadList[i].vertexPoints[2].vertice;
@@ -877,19 +1180,15 @@ public class Cubil_Painter : MonoBehaviour
     {
         if(Application.isPlaying)
         {
-
-            //F(x y) = (y2 - y1) * x + (x1 - x2) * y + (x2 * y1 - x1 * y2)
-
-
-            Vector3 intersection = transform.position + (ray.direction * rayLength);
-            Gizmos.DrawSphere(intersection, .25f);
+            //Vector3 intersection = transform.position + (ray.direction * rayLength);
+            //Gizmos.DrawSphere(intersection, .25f);
 
             //Debug.Log(sp2);
 
             DrawGrid();
             DrawEditorCube();
 
-            mockQuad.DrawQuad(.1f);
+            SelectedQuad.DrawQuad(.1f);
             ConvexQuad.DrawQuad(.1f);
 
             for (int i = 0; i < antiVertices.Count; i ++)
@@ -902,14 +1201,17 @@ public class Cubil_Painter : MonoBehaviour
             if (QuadList.Count != 0)
             {
                 for (int i = 0; i < QuadList.Count; i++)
+                {
                     QuadList[i].DrawQuad(.1f);
+                    Gizmos.DrawSphere(QuadList[i].centre, 0.1f);
+                }
             }
 
             if (CronenbergList.Count != 0)
             {
                 for (int i = 0; i < CronenbergList.Count; i++)
                 {
-                    CronenbergList[i].DrawEdgeVertices(cronenColors);
+                    //CronenbergList[i].DrawEdgeVertices(cronenColors);
                     CronenbergList[i].DrawConvexQuad();
                 }
             }
@@ -924,10 +1226,59 @@ public class Cubil_Painter : MonoBehaviour
             }
             //for (int i = 0; i < antiQuadList.Count; i++)
             //    antiQuadList[i].DrawQuad(.1f);
-
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(new Vector3(8f, 8f, 8f), 1f);
 
+            Gizmos.DrawSphere(BigBoy.centre, 0.2f);
+
+            Gizmos.color = Color.cyan;
+            // Gizmos.DrawSphere(new Vector3(8f, 8f, 8f), 1f);
+
+           if(BigBoyBottomLeft != null)        Gizmos.DrawLine(BigBoyBottomLeft.vertice, BigBoy.vertexPoints[0].vertice);
+           if(BigBoyBottomRight != null)       Gizmos.DrawLine(BigBoyBottomRight.vertice, BigBoy.vertexPoints[1].vertice);
+                                               
+           if (BigBoyRightSideBottom != null)  Gizmos.DrawLine(BigBoyRightSideBottom.vertice, BigBoy.vertexPoints[1].vertice);
+           if (BigBoyRightSideTop != null)     Gizmos.DrawLine(BigBoyRightSideTop.vertice, BigBoy.vertexPoints[3].vertice);
+                                               
+           if (BigBoyLeftSideBottom != null)   Gizmos.DrawLine(BigBoyLeftSideBottom.vertice, BigBoy.vertexPoints[0].vertice);
+           if (BigBoyLeftSideTop != null)      Gizmos.DrawLine(BigBoyLeftSideTop.vertice, BigBoy.vertexPoints[2].vertice);
+                                               
+           if (BigBoyTopLeft != null)          Gizmos.DrawLine(BigBoyTopLeft.vertice, BigBoy.vertexPoints[2].vertice);
+           if (BigBoyTopRight != null)         Gizmos.DrawLine(BigBoyTopRight.vertice, BigBoy.vertexPoints[3].vertice);
+
+
+            Gizmos.color = Color.magenta;
+
+            if (segmentIntersectionBottomVertices.Count != 0)
+            {
+                for (int fuckinghellthisisfucked = 0; fuckinghellthisisfucked < segmentIntersectionBottomVertices.Count; fuckinghellthisisfucked++)
+                {
+                    Gizmos.DrawSphere(segmentIntersectionBottomVertices[fuckinghellthisisfucked].vertice, 0.15f);
+                }
+            }
+
+            if (segmentIntersectionLeftVertices.Count != 0)
+            {
+                for (int fuckinghellthisisfucked = 0; fuckinghellthisisfucked < segmentIntersectionLeftVertices.Count; fuckinghellthisisfucked++)
+                {
+                    Gizmos.DrawSphere(segmentIntersectionLeftVertices[fuckinghellthisisfucked].vertice, 0.15f);
+                }
+            }
+
+            if (segmentIntersectionRightVertices.Count != 0)
+            {
+                for (int fuckinghellthisisfucked = 0; fuckinghellthisisfucked < segmentIntersectionRightVertices.Count; fuckinghellthisisfucked++)
+                {
+                    Gizmos.DrawSphere(segmentIntersectionRightVertices[fuckinghellthisisfucked].vertice, 0.15f);
+                }
+            }
+
+            if (segmentIntersectionTopVertices.Count != 0)
+            {
+                for (int fuckinghellthisisfucked = 0; fuckinghellthisisfucked < segmentIntersectionTopVertices.Count; fuckinghellthisisfucked++)
+                {
+                    Gizmos.DrawSphere(segmentIntersectionTopVertices[fuckinghellthisisfucked].vertice, 0.15f);
+                }
+            }
         }
     }
 
