@@ -43,10 +43,12 @@ public class Cubil_Painter : MonoBehaviour
                   BigBoyLeftSideBottom, BigBoyLeftSideTop,
                   BigBoyTopLeft, BigBoyTopRight;
 
+    public Quad BBQuadLeft, BBQuadRight, BBQuadTop, BBQuadBottom;
+
     public List<Vertex> segmentIntersectionRightVertices = new List<Vertex>();
-    public List<Vertex> segmentIntersectionLeftVertices = new List<Vertex>();
-    public List<Vertex> segmentIntersectionBottomVertices = new List<Vertex>();
-    public List<Vertex> segmentIntersectionTopVertices = new List<Vertex>();
+    private List<Vertex> segmentIntersectionLeftVertices = new List<Vertex>();
+    private List<Vertex> segmentIntersectionBottomVertices = new List<Vertex>();
+    private List<Vertex> segmentIntersectionTopVertices = new List<Vertex>();
 
     void Awake()
     {
@@ -138,6 +140,97 @@ public class Cubil_Painter : MonoBehaviour
 
         }
 
+        //Determin if there are quads and if there area is worth assimulating 
+        AssimilationQuads(BigBoy);
+
+    }
+
+    void AssimilationQuads(Quad BigBoy)
+    {
+
+
+       BBQuadLeft = new Quad();
+       BBQuadRight = new Quad();
+        BBQuadTop = new Quad();
+        BBQuadBottom = new Quad();
+
+        //Count needs to be greater then 4 in order to create a Quad...Duh
+
+        //Right Quad
+        SortAndCreateQuad(segmentIntersectionRightVertices, BigBoy, BBQuadRight, Color.yellow);
+
+        //Left
+        SortAndCreateQuad(segmentIntersectionLeftVertices, BigBoy, BBQuadLeft, Color.green);
+
+        //Left
+        SortAndCreateQuad(segmentIntersectionBottomVertices, BigBoy, BBQuadBottom, Color.blue);
+       
+       // //Top
+        SortAndCreateQuad(segmentIntersectionTopVertices, BigBoy, BBQuadTop, Color.red);
+    }
+
+    void SortAndCreateQuad(List<Vertex> list, Quad bigBoy, Quad BBQuad, Color col)
+    {
+
+        //Reverse the vertice order, right quad 
+
+        if (list.Count >= 4)
+        {
+            float sX = list[0].vertice.x;
+            float sY = list[0].vertice.y;
+            float gX = list[0].vertice.x;
+            float gY = list[0].vertice.y;
+
+
+            int intersectionCheck = 0;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+
+                if (bigBoy.inFace(list[i].vertice))
+                    intersectionCheck++;
+
+                //Find the 4 Best Vertices to Make the Quad
+
+                    //just setting a Quick defualt for comparison reasons
+
+                if (list[i].vertice.x < sX)
+                    sX = list[i].vertice.x;
+
+                if (list[i].vertice.x > gX)
+                    gX = list[i].vertice.x;
+
+                if (list[i].vertice.y < sY)
+                    sY = list[i].vertice.y;
+
+                if (list[i].vertice.y > gY)
+                    gY = list[i].vertice.y;
+            }
+
+
+            if (intersectionCheck < 2)
+                return;
+
+            Vertex v0 = new Vertex(new Vector3(sX, sY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+                Vertex v1 = new Vertex(new Vector3(gX, sY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+                Vertex v2 = new Vertex(new Vector3(sX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+                Vertex v3 = new Vertex(new Vector3(gX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+
+           // BBQuad = new Quad();
+            Quad newQuad = new Quad(bigBoy.centre, new Vector3(0, 1, 0));
+
+            BBQuad.quadColor = col;
+
+            BBQuad.vertexPoints[0] = v0;
+            BBQuad.vertexPoints[1] = v1;
+            BBQuad.vertexPoints[2] = v2;
+            BBQuad.vertexPoints[3] = v3;
+
+            BBQuad.CalculateCentre();
+            BBQuad.CalculateQuadArea();
+
+            BBQuad = newQuad;
+        }
     }
 
     Vertex SegmentIntersection(Vertex p0, Vertex p1, Vertex p2, Vertex p3)
@@ -1212,7 +1305,7 @@ public class Cubil_Painter : MonoBehaviour
                 for (int i = 0; i < CronenbergList.Count; i++)
                 {
                     //CronenbergList[i].DrawEdgeVertices(cronenColors);
-                    CronenbergList[i].DrawConvexQuad();
+                    //CronenbergList[i].DrawConvexQuad();
                 }
             }
 
@@ -1279,6 +1372,13 @@ public class Cubil_Painter : MonoBehaviour
                     Gizmos.DrawSphere(segmentIntersectionTopVertices[fuckinghellthisisfucked].vertice, 0.15f);
                 }
             }
+
+            //Gizmos.color = Color.magenta;
+            if(BBQuadRight != null) BBQuadRight.DrawQuad(.5f);
+            if(BBQuadLeft != null) BBQuadLeft.DrawQuad(.5f);
+
+            if (BBQuadTop != null)  BBQuadTop.DrawQuad(.5f);
+            if (BBQuadBottom != null) BBQuadBottom.DrawQuad(.5f);
         }
     }
 

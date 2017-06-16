@@ -265,6 +265,7 @@ public class Quad
         return left.Equals(right);
     }
 
+
     public static bool operator !=(Quad left, Quad right)
     {
         return !(left == right);
