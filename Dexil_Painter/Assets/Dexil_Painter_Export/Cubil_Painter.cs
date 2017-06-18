@@ -147,10 +147,8 @@ public class Cubil_Painter : MonoBehaviour
 
     void AssimilationQuads(Quad BigBoy)
     {
-
-
-       BBQuadLeft = new Quad();
-       BBQuadRight = new Quad();
+        BBQuadLeft = new Quad();
+        BBQuadRight = new Quad();
         BBQuadTop = new Quad();
         BBQuadBottom = new Quad();
 
@@ -171,10 +169,9 @@ public class Cubil_Painter : MonoBehaviour
 
     void SortAndCreateQuad(List<Vertex> list, Quad bigBoy, Quad BBQuad, Color col)
     {
-
         //Reverse the vertice order, right quad 
 
-        if (list.Count >= 4)
+            if (list.Count >= 4)
         {
             float sX = list[0].vertice.x;
             float sY = list[0].vertice.y;
@@ -207,29 +204,40 @@ public class Cubil_Painter : MonoBehaviour
                     gY = list[i].vertice.y;
             }
 
-
             if (intersectionCheck < 2)
                 return;
 
             Vertex v0 = new Vertex(new Vector3(sX, sY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
-                Vertex v1 = new Vertex(new Vector3(gX, sY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
-                Vertex v2 = new Vertex(new Vector3(sX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
-                Vertex v3 = new Vertex(new Vector3(gX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+            Vertex v1 = new Vertex(new Vector3(gX, sY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+            Vertex v2 = new Vertex(new Vector3(sX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+            Vertex v3 = new Vertex(new Vector3(gX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
 
            // BBQuad = new Quad();
             Quad newQuad = new Quad(bigBoy.centre, new Vector3(0, 1, 0));
 
+            newQuad.quadColor = col;
+
+            newQuad.vertexPoints[0] = v0;
+            newQuad.vertexPoints[1] = v1;
+            newQuad.vertexPoints[2] = v2;
+            newQuad.vertexPoints[3] = v3;
+
+            newQuad.CalculateQuadArea();
+            newQuad.CalculateCentre();
+            newQuad.CalculateCentrePoints();
+
+            LookForAntiPoints(newQuad); //Looking For points in the mesh that arnt part of the Main QuadMesh
+
             BBQuad.quadColor = col;
 
-            BBQuad.vertexPoints[0] = v0;
-            BBQuad.vertexPoints[1] = v1;
-            BBQuad.vertexPoints[2] = v2;
-            BBQuad.vertexPoints[3] = v3;
+            BBQuad.vertexPoints[0] = newQuad.vertexPoints[0];
+            BBQuad.vertexPoints[1] = newQuad.vertexPoints[1];
+            BBQuad.vertexPoints[2] = newQuad.vertexPoints[2];
+            BBQuad.vertexPoints[3] = newQuad.vertexPoints[3];
 
-            BBQuad.CalculateCentre();
             BBQuad.CalculateQuadArea();
-
-            BBQuad = newQuad;
+            BBQuad.CalculateCentre();
+            BBQuad.CalculateCentrePoints();
         }
     }
 
@@ -343,6 +351,39 @@ public class Cubil_Painter : MonoBehaviour
 
     }
 
+    void LookForAntiPoints(Quad quad)
+    {
+        //Points not on the mesh 
+
+        quad.antiPoints = new List<Vector3>();
+
+        for(int i = 0; i < quad.centrePoints.Count; i++)
+        {
+            bool isAnti = true;
+
+           // quad.antiPoints.Add(quad.centrePoints[i]);
+
+            for (int j = 0; j < QuadList.Count; j++)
+            {
+
+                if(QuadList[j].inFace(quad.centrePoints[i]))
+                {
+                    //If even 1 quad returns true (its ontop of a quad) 
+                    //then its not a hole/anti Quad
+                    isAnti = false;
+                    break;
+                }
+            }
+
+          if (isAnti)
+          {
+              quad.antiPoints.Add(quad.centrePoints[i]);
+          }
+        }
+
+        Debug.Log(quad.antiPoints.Count);
+    }
+
     Vector3 ManageMouseInput()
     {
         m_Input = Camera.main.ScreenToWorldPoint(Input.mousePosition - new Vector3(0, 0, transform.position.z));
@@ -407,6 +448,7 @@ public class Cubil_Painter : MonoBehaviour
 
     void FaceConstruction()
     {
+
         Vector3 sp = ManageMouseInput();
         pointInCube = g_Utils.pointInCube(sp, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
@@ -463,8 +505,12 @@ public class Cubil_Painter : MonoBehaviour
     void QuadCalculateCentre()
     {
         foreach (Quad q in QuadList)
+        {
             q.CalculateCentre();
+            q.CalculateCentrePoints();
+        }
     }
+
 
     #region CameraControls
     //---------------------------- CameraControls -----------------------------------------------------
@@ -1296,7 +1342,7 @@ public class Cubil_Painter : MonoBehaviour
                 for (int i = 0; i < QuadList.Count; i++)
                 {
                     QuadList[i].DrawQuad(.1f);
-                    Gizmos.DrawSphere(QuadList[i].centre, 0.1f);
+                   // Gizmos.DrawSphere(QuadList[i].centre, 0.1f);
                 }
             }
 
@@ -1374,11 +1420,12 @@ public class Cubil_Painter : MonoBehaviour
             }
 
             //Gizmos.color = Color.magenta;
-            if(BBQuadRight != null) BBQuadRight.DrawQuad(.5f);
-            if(BBQuadLeft != null) BBQuadLeft.DrawQuad(.5f);
+            if(BBQuadRight != null) BBQuadRight.DrawQuad(.15f);
 
-            if (BBQuadTop != null)  BBQuadTop.DrawQuad(.5f);
-            if (BBQuadBottom != null) BBQuadBottom.DrawQuad(.5f);
+            if (BBQuadLeft != null) BBQuadLeft.DrawQuad(.15f);
+
+            if (BBQuadTop != null)  BBQuadTop.DrawQuad(.15f);
+            if (BBQuadBottom != null) BBQuadBottom.DrawQuad(.15f);
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 public class Triangle
 {
@@ -97,10 +98,32 @@ public class Quad
     public Triangle t1, t2;
     public Color quadColor;
     public Vector3 centre;
+    public List<Vector3> centrePoints = new List<Vector3>();
+    public List<Vector3> antiPoints = new List<Vector3>();
+
     public Quad q;
     public float area;
 
     public Quad(){ CreateTris(); vertexPoints = CreateVerts(new Vector3(0,0,0), new Vector3(0, 0, 0)); }
+
+    public void CalculateCentrePoints()
+    {
+        if (area > 0)
+        {
+            centrePoints = new List<Vector3>(new Vector3[(int)area]);
+
+            float width = Mathf.RoundToInt( vertexPoints[1].vertice.x - vertexPoints[0].vertice.x);
+            float height = Mathf.RoundToInt(vertexPoints[2].vertice.y - vertexPoints[0].vertice.y);
+
+            for (int i = 0; i < (int)width; i++)
+            {
+                for (int j = 0; j < (int)height; j++)
+                {
+                    centrePoints[i + (j * (int)width)] = new Vector3(i + vertexPoints[0].vertice.x + 0.5f, j + vertexPoints[0].vertice.y + 0.5f, vertexPoints[0].vertice.z);
+                }
+            }
+        }
+    }
 
     public static Quad create(Vector3 _c, Vector3 _dir)
     {
@@ -145,16 +168,16 @@ public class Quad
 
         Gizmos.color = quadColor;
         //Drawing Vertices and Normals
-       // Gizmos.DrawSphere(vertexPoints[0].vertice, size);
+        // Gizmos.DrawSphere(vertexPoints[0].vertice, size);
         Gizmos.DrawLine(vertexPoints[0].vertice, vertexPoints[0].vertice + vertexPoints[0].normal);
 
-       // Gizmos.DrawSphere(vertexPoints[1].vertice, size);
+        // Gizmos.DrawSphere(vertexPoints[1].vertice, size);
         Gizmos.DrawLine(vertexPoints[1].vertice, vertexPoints[1].vertice + vertexPoints[1].normal);
 
-       // Gizmos.DrawSphere(vertexPoints[2].vertice, size);
+        // Gizmos.DrawSphere(vertexPoints[2].vertice, size);
         Gizmos.DrawLine(vertexPoints[2].vertice, vertexPoints[2].vertice + vertexPoints[2].normal);
 
-       // Gizmos.DrawSphere(vertexPoints[3].vertice, size);
+        // Gizmos.DrawSphere(vertexPoints[3].vertice, size);
         Gizmos.DrawLine(vertexPoints[3].vertice, vertexPoints[3].vertice + vertexPoints[3].normal);
 
         //Drawing Traingles
@@ -165,6 +188,17 @@ public class Quad
         Gizmos.DrawLine(vertexPoints[t2.indexArray[0]].vertice, vertexPoints[t2.indexArray[1]].vertice);
         Gizmos.DrawLine(vertexPoints[t2.indexArray[1]].vertice, vertexPoints[t2.indexArray[2]].vertice);
         Gizmos.DrawLine(vertexPoints[t2.indexArray[2]].vertice, vertexPoints[t2.indexArray[0]].vertice);
+
+       // Gizmos.DrawSphere(this.centre, size);
+
+
+        if (centrePoints.Count > 0)
+        {
+            for (int i = 0; i < centrePoints.Count; i++)
+            {
+                Gizmos.DrawSphere(centrePoints[i], size);
+            }
+        }
     }
 
     public void UpdateQuad(Vector3 c)
