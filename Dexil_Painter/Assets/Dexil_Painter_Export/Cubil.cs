@@ -91,6 +91,19 @@ public class Vertex
    }
 }
 
+
+
+
+
+//Quad Structure Going From Left To Right
+
+//     2--------3
+//     |        |
+//     |        |
+//     |        |
+//     0--------1
+
+
 [Serializable]
 public class Quad
 {
@@ -102,7 +115,7 @@ public class Quad
     public List<Vector3> antiPoints = new List<Vector3>();
 
     public Quad q;
-    public float area;
+    public int area;
 
     public Quad(){ CreateTris(); vertexPoints = CreateVerts(new Vector3(0,0,0), new Vector3(0, 0, 0)); }
 
@@ -111,7 +124,6 @@ public class Quad
         if (area > 0)
         {
             centrePoints = new List<Vector3>(new Vector3[(int)area]);
-
             float width = Mathf.RoundToInt( vertexPoints[1].vertice.x - vertexPoints[0].vertice.x);
             float height = Mathf.RoundToInt(vertexPoints[2].vertice.y - vertexPoints[0].vertice.y);
 
@@ -137,7 +149,18 @@ public class Quad
         return obj;
     }
 
-    public Quad (Vector3 _c, Vector3 _dir)
+    public Vertex[] CreateTestVertices(Vector3 c, Vector3 _dir)
+    {
+        return new Vertex[]
+        {
+            new Vertex(new Vector3(-.5f, -.5f, 0.0f) + c, _dir, c), //0
+            new Vertex(new Vector3(+.5f, -.5f, 0.0f) + c, _dir, c), //1
+            new Vertex(new Vector3(-.5f, +.5f, 0.0f) + c, _dir, c), //2
+            new Vertex(new Vector3(+.5f, +.5f, 0.0f) + c, _dir, c)  //3 
+        };
+    }
+
+public Quad (Vector3 _c, Vector3 _dir)
     {
        vertexPoints = CreateVerts(_c, _dir);
        centre = _c;
@@ -159,8 +182,8 @@ public class Quad
 
     public void CalculateQuadArea()
     {
-        area = Mathf.Abs(vertexPoints[0].vertice.x - vertexPoints[1].vertice.x) *
-               Mathf.Abs(vertexPoints[0].vertice.y - vertexPoints[2].vertice.y);
+        area = (int)(Mathf.Abs(vertexPoints[0].vertice.x - vertexPoints[1].vertice.x) *
+                    Mathf.Abs(vertexPoints[0].vertice.y - vertexPoints[2].vertice.y));
     }
 
     public void DrawQuad(float size)

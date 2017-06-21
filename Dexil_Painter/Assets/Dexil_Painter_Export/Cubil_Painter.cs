@@ -24,7 +24,7 @@ public class Cubil_Painter : MonoBehaviour
     //Ray ray;
     public Quad BigBoy;
     bool x;
-
+   
     //public List<QuadList> histogramList = new List<QuadList>();
 
     public bool ColorRegions, pointInCube, UPDATE;
@@ -152,22 +152,75 @@ public class Cubil_Painter : MonoBehaviour
         BBQuadTop = new Quad();
         BBQuadBottom = new Quad();
 
-        //Count needs to be greater then 4 in order to create a Quad...Duh
+        //------------------------------------------------------Right
+        SortAndCreateAssiumulationQuad(segmentIntersectionRightVertices, BigBoy, BBQuadRight, Color.yellow);
+        EvaluateAssiumulationQuadRight(segmentIntersectionRightVertices, BigBoy, BBQuadRight, Color.yellow);
+        //------------------------------------------------------
 
-        //Right Quad
-        SortAndCreateQuad(segmentIntersectionRightVertices, BigBoy, BBQuadRight, Color.yellow);
+        //------------------------------------------------------Left
+        SortAndCreateAssiumulationQuad(segmentIntersectionLeftVertices, BigBoy, BBQuadLeft, Color.green);
+        //------------------------------------------------------Left
 
-        //Left
-        SortAndCreateQuad(segmentIntersectionLeftVertices, BigBoy, BBQuadLeft, Color.green);
+        //Bottom
+        SortAndCreateAssiumulationQuad(segmentIntersectionBottomVertices, BigBoy, BBQuadBottom, Color.blue);
 
-        //Left
-        SortAndCreateQuad(segmentIntersectionBottomVertices, BigBoy, BBQuadBottom, Color.blue);
-       
-       // //Top
-        SortAndCreateQuad(segmentIntersectionTopVertices, BigBoy, BBQuadTop, Color.red);
+        // //Top
+        SortAndCreateAssiumulationQuad(segmentIntersectionTopVertices, BigBoy, BBQuadTop, Color.red);
+
+
+
+        //Quads should be done and evaulated and ready to be checked at this point
+        //asking wether we should be going verticall or horizontal
+
+        int horizontalAreaSum = BBQuadLeft.area + BigBoy.area + BBQuadRight.area;
+
+        int verticalAreaSum = BBQuadTop.area + BigBoy.area + BBQuadBottom.area;
+
+
+        //Cutting Quads, Removing from list and Extending BigBoy
+
     }
 
-    void SortAndCreateQuad(List<Vertex> list, Quad bigBoy, Quad BBQuad, Color col)
+
+    void EvaluateAssiumulationQuadRight(List<Vertex> list, Quad bigBoy, Quad BBQuad, Color col)
+    {
+        //Taking the Data we just created and Doing adjustments before finally Checking its Area
+
+        //Create Anti points to Check
+        CheckForAntiPoints(BBQuad);
+
+        if (BBQuad.antiPoints.Count > 0 && BBQuad.centrePoints.Count != 0)
+        {
+
+
+            if(BBQuad.antiPoints.Count > 1)
+            {
+                // QuadList = QuadList.OrderByDescending(o => o.area).ToList(); 
+                
+                //Sort threw and find the smallest
+            }
+            else
+            {
+                //Generate Phantom vertices and readjust the quad
+
+
+            }
+
+            // QuadList = QuadList.OrderByDescending(o => o.area).ToList(); 
+
+            //Sort from left to right on X
+            //Need to get the smallest X
+            //then use phantom quad vertexpoint 0's x 
+
+
+        }
+        else if (BBQuad.antiPoints.Count == 0 && BBQuad.centrePoints.Count != 0)
+        {
+            Debug.Log(BBQuad.area);
+        }
+    }
+
+    void SortAndCreateAssiumulationQuad(List<Vertex> list, Quad bigBoy, Quad BBQuad, Color col)
     {
         //Reverse the vertice order, right quad 
 
@@ -188,9 +241,6 @@ public class Cubil_Painter : MonoBehaviour
                     intersectionCheck++;
 
                 //Find the 4 Best Vertices to Make the Quad
-
-                    //just setting a Quick defualt for comparison reasons
-
                 if (list[i].vertice.x < sX)
                     sX = list[i].vertice.x;
 
@@ -212,33 +262,106 @@ public class Cubil_Painter : MonoBehaviour
             Vertex v2 = new Vertex(new Vector3(sX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
             Vertex v3 = new Vertex(new Vector3(gX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
 
-           // BBQuad = new Quad();
-            Quad newQuad = new Quad(bigBoy.centre, new Vector3(0, 1, 0));
+            Quad caneryQuad = new Quad(bigBoy.centre, new Vector3(0, 1, 0));
 
-            newQuad.quadColor = col;
+            caneryQuad.quadColor = col;
 
-            newQuad.vertexPoints[0] = v0;
-            newQuad.vertexPoints[1] = v1;
-            newQuad.vertexPoints[2] = v2;
-            newQuad.vertexPoints[3] = v3;
+            caneryQuad.vertexPoints[0] = v0;
+            caneryQuad.vertexPoints[1] = v1;
+            caneryQuad.vertexPoints[2] = v2;
+            caneryQuad.vertexPoints[3] = v3;
 
-            newQuad.CalculateQuadArea();
-            newQuad.CalculateCentre();
-            newQuad.CalculateCentrePoints();
+            caneryQuad.CalculateQuadArea();
+            caneryQuad.CalculateCentre();
+            caneryQuad.CalculateCentrePoints();
 
-            LookForAntiPoints(newQuad); //Looking For points in the mesh that arnt part of the Main QuadMesh
+            //Checking for Holes First Before going ahead
+            CheckForAntiPoints(caneryQuad);
+
+            //We dont want no phantom quads touching bigboy
+            //And any gaps on the sides of big boy will result
+            //in canceling the method as there is now way to construct
+
+            if(CheckAntiVerticesPoints(caneryQuad, BigBoy))
+            {
+                //caneryQuad died :(
+                return;
+            }
 
             BBQuad.quadColor = col;
-
-            BBQuad.vertexPoints[0] = newQuad.vertexPoints[0];
-            BBQuad.vertexPoints[1] = newQuad.vertexPoints[1];
-            BBQuad.vertexPoints[2] = newQuad.vertexPoints[2];
-            BBQuad.vertexPoints[3] = newQuad.vertexPoints[3];
+            BBQuad.vertexPoints[0] = caneryQuad.vertexPoints[0];
+            BBQuad.vertexPoints[1] = caneryQuad.vertexPoints[1];
+            BBQuad.vertexPoints[2] = caneryQuad.vertexPoints[2];
+            BBQuad.vertexPoints[3] = caneryQuad.vertexPoints[3];
 
             BBQuad.CalculateQuadArea();
             BBQuad.CalculateCentre();
             BBQuad.CalculateCentrePoints();
+
+            //Check BBQuad for Anti Points/Holes
+            //CheckForAntiPoints(BBQuad);
         }
+    }
+
+    bool CheckAntiVerticesPoints(Quad testQuad, Quad bigboy)
+    {
+        //For each point, Create Phantom Quads to Test against the main list
+        //Checking if there phantoms are touching and if so return false 
+        for (int i = 0; i < testQuad.antiPoints.Count; i++)
+        {
+            Vertex[] testies = testQuad.CreateTestVertices(testQuad.antiPoints[i], testQuad.vertexPoints[0].normal);
+
+            for(int j = 0; j < 4; j++)
+            {
+
+                //Checking if phantoms balls are touching big boy's parimetre
+                if (bigboy.inFace(testies[j].vertice))
+                {
+                    return true;
+                }
+
+                for (int k = 0; k < bigboy.vertexPoints.Length; k++)
+                {
+                    if (testies[j] == bigboy.vertexPoints[k])
+                    {
+                        ///Debug.Log("Phantom Balls Touching the BigBoy!");
+                        return true;
+                    }
+                    
+                }
+       
+            }
+
+        }
+
+        return false;
+    }
+
+    void CheckForAntiPoints(Quad q)
+    {
+        //sort the centres points and find out which 
+        //ones are currently not part of the main Quad list
+
+        for (int j = 0; j < q.centrePoints.Count; j++)
+        {
+            bool inFace = false;
+
+            for (int i = 0; i < QuadList.Count; i++)
+            {
+                if (QuadList[i].inFace(q.centrePoints[j]))
+                {
+                    inFace = true;
+                    break;
+                }
+            }
+
+            if (inFace)
+                continue;
+
+
+            if (!q.antiPoints.Contains(q.centrePoints[j])) q.antiPoints.Add(q.centrePoints[j]);
+        }
+
     }
 
     Vertex SegmentIntersection(Vertex p0, Vertex p1, Vertex p2, Vertex p3)
@@ -349,39 +472,6 @@ public class Cubil_Painter : MonoBehaviour
             if (!list.Contains(r3)) list.Add(r3);
         }
 
-    }
-
-    void LookForAntiPoints(Quad quad)
-    {
-        //Points not on the mesh 
-
-        quad.antiPoints = new List<Vector3>();
-
-        for(int i = 0; i < quad.centrePoints.Count; i++)
-        {
-            bool isAnti = true;
-
-           // quad.antiPoints.Add(quad.centrePoints[i]);
-
-            for (int j = 0; j < QuadList.Count; j++)
-            {
-
-                if(QuadList[j].inFace(quad.centrePoints[i]))
-                {
-                    //If even 1 quad returns true (its ontop of a quad) 
-                    //then its not a hole/anti Quad
-                    isAnti = false;
-                    break;
-                }
-            }
-
-          if (isAnti)
-          {
-              quad.antiPoints.Add(quad.centrePoints[i]);
-          }
-        }
-
-        Debug.Log(quad.antiPoints.Count);
     }
 
     Vector3 ManageMouseInput()
