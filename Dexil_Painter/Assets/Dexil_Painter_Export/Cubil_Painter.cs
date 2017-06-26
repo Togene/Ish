@@ -1060,7 +1060,6 @@ public class Cubil_Painter : MonoBehaviour
                 if (BBQuadBottom.inFace(intersectingQuads[i].vertexPoints[j].vertice))
                 {
                     vertexPointCount++;
-
                 }
             }
 
@@ -1097,12 +1096,11 @@ public class Cubil_Painter : MonoBehaviour
                 Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
 
                 //This is Top
-                if (BBQuadBottom.inFace(vert0) && BBQuadBottom.inFace(vert1))
+                if (BBQuadBottom.inFace(vert2) && BBQuadBottom.inFace(vert3))
                 {
                     quadstoPush[i].vertexPoints[2].vertice.y = BBQuadBottom.vertexPoints[0].vertice.y;
                     quadstoPush[i].vertexPoints[3].vertice.y = BBQuadBottom.vertexPoints[0].vertice.y;
                 }
-
                 //This is Left
                 if (BBQuadBottom.inFace(vert0) && BBQuadBottom.inFace(vert2))
                 {
@@ -1115,7 +1113,6 @@ public class Cubil_Painter : MonoBehaviour
                     quadstoPush[i].vertexPoints[3].vertice.x = BBQuadBottom.vertexPoints[0].vertice.x;
                     quadstoPush[i].vertexPoints[1].vertice.x = BBQuadBottom.vertexPoints[0].vertice.x;
                 }
-
             }
         }
 
@@ -1178,54 +1175,55 @@ public class Cubil_Painter : MonoBehaviour
 
 
                 //Top Check
-                if (BBQuadBottom.inFace(p1.vertice) || BBQuadBottom.inFace(p3.vertice))
+                if (BBQuadBottom.inFace(p0.vertice) || BBQuadBottom.inFace(p2.vertice))
                 {
                     if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
                 }
 
                 //bottom Check
-                if (BBQuadBottom.inFace(p0.vertice) || BBQuadBottom.inFace(p2.vertice))
+                if (BBQuadBottom.inFace(p1.vertice) || BBQuadBottom.inFace(p3.vertice))
                 {
                     if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
                 }
 
             }
-        }
 
-        splitLeftPoint = FindPoint0(splitLeft, BBQuadBottom);
-        splitRightPoint = FindPoint1(splitRight, BBQuadBottom);
 
-        //Debug.Log("Left Point " + splitLeftPoint);
-        //Debug.Log("Right Point " + splitRightPoint);
-        //
-        //Splitting the Top Quad at the Point 3
-        if (splitLeft.Count != 0)
-        {
-            for (int i = 0; i < splitLeft.Count; i++)
+            splitLeftPoint = FindPoint1(splitLeft, BBQuadBottom);
+            splitRightPoint = FindPoint0(splitRight, BBQuadBottom);
+
+            //Debug.Log("Left Point " + splitLeftPoint);
+            //Debug.Log("Right Point " + splitRightPoint);
+            //
+            //Splitting the Top Quad at the Point 3
+            if (splitLeft.Count != 0)
             {
-                splitLeft[i].CalculateCentre();
-                splitLeft[i].CalculateCentrePoints();
-                splitLeft[i].CalculateQuadArea();
+                for (int i = 0; i < splitLeft.Count; i++)
+                {
+                    splitLeft[i].CalculateCentre();
+                    splitLeft[i].CalculateCentrePoints();
+                    splitLeft[i].CalculateQuadArea();
 
-                intesectingQuad = splitLeft[i];
+                    intesectingQuad = splitLeft[i];
 
-                FractureQuads(splitLeftPoint);
-                //break;
+                    FractureQuads(splitLeftPoint);
+                    //break;
+                }
             }
-        }
 
-        if (splitRight.Count != 0)
-        {
-            for (int j = 0; j < splitRight.Count; j++)
+            if (splitRight.Count != 0)
             {
-                splitRight[j].CalculateCentre();
-                splitRight[j].CalculateCentrePoints();
-                splitRight[j].CalculateQuadArea();
+                for (int j = 0; j < splitRight.Count; j++)
+                {
+                    splitRight[j].CalculateCentre();
+                    splitRight[j].CalculateCentrePoints();
+                    splitRight[j].CalculateQuadArea();
 
-                intesectingQuad = splitRight[j];
+                    intesectingQuad = splitRight[j];
 
-                FractureQuads(splitRightPoint);
-                // break;
+                    FractureQuads(splitRightPoint);
+                    // break;
+                }
             }
         }
 
@@ -1265,7 +1263,6 @@ public class Cubil_Painter : MonoBehaviour
 
         //Removing Quads Who are Completly inside the Assimulation Quad
         RemoveQuads(quadstoRemove);
-
 
         if (BBQuadBottom != null && BBQuadBottom.area > 1)
         {
@@ -1430,17 +1427,17 @@ public class Cubil_Painter : MonoBehaviour
                 //Find the Top right fron the new list
 
                 //Get highest X 
-                float x = centrePointsInside[0].y;
+                float x = centrePointsInside[0].x;
                 //Get Highest Y
                 float y = centrePointsInside[0].y;
 
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
-                    if (centrePointsInside[j].x < x)
+                    if (centrePointsInside[j].x <= x)
                         x = centrePointsInside[j].x;
 
-                    if (centrePointsInside[j].y > y)
+                    if (centrePointsInside[j].y >= y)
                         y = centrePointsInside[j].y;
                 }
 
@@ -1489,17 +1486,17 @@ public class Cubil_Painter : MonoBehaviour
                 //Find the Top right fron the new list
 
                 //Get highest X 
-                float x = centrePointsInside[0].y;
+                float x = centrePointsInside[0].x;
                 //Get Highest Y
                 float y = centrePointsInside[0].y;
 
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
-                    if (centrePointsInside[j].x < x)
+                    if (centrePointsInside[j].x <= x)
                         x = centrePointsInside[j].x;
 
-                    if (centrePointsInside[j].y < y)
+                    if (centrePointsInside[j].y <= y)
                         y = centrePointsInside[j].y;
                 }
 
@@ -1884,7 +1881,6 @@ public class Cubil_Painter : MonoBehaviour
 
             if (inFace)
                 continue;
-
 
             if (!q.antiPoints.Contains(q.centrePoints[j])) q.antiPoints.Add(q.centrePoints[j]);
         }
