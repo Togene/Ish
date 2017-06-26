@@ -92,9 +92,6 @@ public class Vertex
 }
 
 
-
-
-
 //Quad Structure Going From Left To Right
 
 //     2--------3
@@ -102,7 +99,8 @@ public class Vertex
 //     |        |
 //     |        |
 //     0--------1
-
+//
+// Using Left To Right Method !!!!!!!!!!
 
 [Serializable]
 public class Quad
