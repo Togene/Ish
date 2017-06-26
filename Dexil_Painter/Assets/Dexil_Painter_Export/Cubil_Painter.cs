@@ -932,9 +932,6 @@ public class Cubil_Painter : MonoBehaviour
         splitLeftPoint = FindPoint2(splitLeft, BBQuadTop);
         splitRightPoint = FindPoint3(splitRight, BBQuadTop);
 
-         Debug.Log("Left Point " + splitLeftPoint);
-         Debug.Log("Right Point " + splitRightPoint);
-
         //Splitting the Top Quad at the Point 3
         if (splitLeft.Count != 0)
         {
@@ -1181,13 +1178,13 @@ public class Cubil_Painter : MonoBehaviour
 
 
                 //Top Check
-                if (BBQuadBottom.inFace(p0.vertice) || BBQuadBottom.inFace(p2.vertice))
+                if (BBQuadBottom.inFace(p1.vertice) || BBQuadBottom.inFace(p3.vertice))
                 {
                     if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
                 }
 
                 //bottom Check
-                if (BBQuadBottom.inFace(p1.vertice) || BBQuadBottom.inFace(p3.vertice))
+                if (BBQuadBottom.inFace(p0.vertice) || BBQuadBottom.inFace(p2.vertice))
                 {
                     if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
                 }
@@ -1195,8 +1192,8 @@ public class Cubil_Painter : MonoBehaviour
             }
         }
 
-        splitLeftPoint = FindPoint1(splitLeft, BBQuadBottom);
-        splitRightPoint = FindPoint0(splitRight, BBQuadBottom);
+        splitLeftPoint = FindPoint0(splitLeft, BBQuadBottom);
+        splitRightPoint = FindPoint1(splitRight, BBQuadBottom);
 
         //Debug.Log("Left Point " + splitLeftPoint);
         //Debug.Log("Right Point " + splitRightPoint);
