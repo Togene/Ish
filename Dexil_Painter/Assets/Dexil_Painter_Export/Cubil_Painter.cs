@@ -66,6 +66,7 @@ public class Cubil_Painter : MonoBehaviour
 
     void BigBoyAssimulation() //Handles Bigger Quads simplifying the Mesh
     {
+        QuadList = QuadList.OrderByDescending(o => o.area).ToList();
 
         if (QuadList.Count != 0)
         {
@@ -203,18 +204,18 @@ public class Cubil_Painter : MonoBehaviour
             if(BBQuadRight.area != 0)
             RightQuadAssimulate();
 
-            if (BBQuadLeft.area != 0)
-            LeftQuadAssimulate();
+           if (BBQuadLeft.area != 0)
+           LeftQuadAssimulate();
 
         }
         else if(verticalAreaSum > horizontalAreaSum)
         {
 
-            if (BBQuadTop.area != 0)
-                TopQuadAssimulate();
+           if (BBQuadTop.area != 0)
+               TopQuadAssimulate();
 
             if (BBQuadBottom.area != 0)
-                BottomQuadAssimulate();
+               BottomQuadAssimulate();
         }
 
     }
@@ -252,239 +253,235 @@ public class Cubil_Painter : MonoBehaviour
 
         //All quads vertices inside
         List<Quad> quadstoSplit = new List<Quad>();
-    
 
 
-        //Find and Sort Quads into there respective lists based on vertice information
-        for (int i = 0; i < intersectingQuads.Count; i++)
+        if (intersectingQuads.Count != 0)
         {
-            int vertexPointCount = 0;
-
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+            //Find and Sort Quads into there respective lists based on vertice information
+            for (int i = 0; i < intersectingQuads.Count; i++)
             {
-                if (BBQuadRight.inFace(intersectingQuads[i].vertexPoints[j].vertice))
-                {
-                    vertexPointCount++;
+                int vertexPointCount = 0;
 
+                for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+                {
+                    if (BBQuadRight.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                    {
+                        vertexPointCount++;
+
+                    }
+                }
+
+                if (vertexPointCount == 4)
+                {
+                    if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount != 0 && vertexPointCount < 3)
+                {
+                    if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount == 0)
+                {
+                    if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount == 1)
+                {
+                    if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
                 }
             }
 
-            if (vertexPointCount == 4)
+            //Push Quads who are only slightly inside the Assimulation Quad
+            if (quadstoPush.Count != 0)
             {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount != 0 && vertexPointCount < 3)
-            {
-                if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount == 0)
-            {
-                if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount == 1)
-            {
-                if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
-            }
-        }
-
-        //Push Quads who are only slightly inside the Assimulation Quad
-        if (quadstoPush.Count != 0)
-        {
-            for (int i = 0; i < quadstoPush.Count; i++)
-            {
-
-                Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
-                Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
-                Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
-                Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
-
-                //This is Bottom
-                if (BBQuadRight.inFace(vert0) && BBQuadRight.inFace(vert1))
+                for (int i = 0; i < quadstoPush.Count; i++)
                 {
-                    quadstoPush[i].vertexPoints[0].vertice.y = BBQuadRight.vertexPoints[2].vertice.y;
-                    quadstoPush[i].vertexPoints[1].vertice.y = BBQuadRight.vertexPoints[2].vertice.y;
-                }
-                //This is Top
-                if (BBQuadRight.inFace(vert2) && BBQuadRight.inFace(vert3))
-                {
-                    quadstoPush[i].vertexPoints[2].vertice.y = BBQuadRight.vertexPoints[0].vertice.y;
-                    quadstoPush[i].vertexPoints[3].vertice.y = BBQuadRight.vertexPoints[0].vertice.y;
-                }
-                //This is Left
-                if (BBQuadRight.inFace(vert0) && BBQuadRight.inFace(vert2))
-                {
-                    quadstoPush[i].vertexPoints[2].vertice.x = BBQuadRight.vertexPoints[1].vertice.x;
-                    quadstoPush[i].vertexPoints[0].vertice.x = BBQuadRight.vertexPoints[1].vertice.x;
-                }
+                    Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
+                    Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
+                    Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
+                    Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
 
-            }
-        }
-
-        //Cut Quads who are larger either in X or Y inside the Assimulation Quad
-        if (quadstoCut.Count != 0)
-        {
-            for (int i = 0; i < quadstoCut.Count; i++)
-            {
-                //quad to cut will always have a top and a bottom quad so EZ
-                //Top Quad 
-                Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
-
-                topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
-                topQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
-                topQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
-
-                topQuad.CalculateCentre();
-                topQuad.CalculateQuadArea();
-                topQuad.CalculateCentrePoints();
-
-                //Bottom Quad
-                Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
-
-                bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
-                bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
-                bottomQuad.vertexPoints[2].vertice = new Vector3(quadstoCut[i].vertexPoints[2].vertice.x, BBQuadRight.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[2].vertice.z);
-                bottomQuad.vertexPoints[3].vertice = new Vector3(quadstoCut[i].vertexPoints[3].vertice.x, BBQuadRight.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[3].vertice.z);
-
-
-                bottomQuad.CalculateCentre();
-                bottomQuad.CalculateQuadArea();
-                bottomQuad.CalculateCentrePoints();
-
-                if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
-
-                if (!QuadList.Contains(bottomQuad)) QuadList.Add(bottomQuad);
-                if (!QuadList.Contains(topQuad)) QuadList.Add(topQuad);
-            }
-        }
-
-        //Seperate split Quad list beased on vertices based on which vertices is within the Quad
-        List<Quad> splitTop = new List<Quad>();
-        List<Quad> splitBottom = new List<Quad>();
-
-
-        Vector3 splitTopPoint = new Vector3();
-        Vector3 splitBottomPoint = new Vector3();
-
-        //Seperate Quads into Top and Bottom Quads
-        if (quadstoSplit.Count != 0)
-        {
-            for (int i = 0; i < quadstoSplit.Count; i++)
-            {
-                Vertex p0 = quadstoSplit[i].vertexPoints[0];
-                Vertex p1 = quadstoSplit[i].vertexPoints[1];
-                Vertex p2 = quadstoSplit[i].vertexPoints[2];
-                Vertex p3 = quadstoSplit[i].vertexPoints[3];
-
-
-                //Top Check
-                if (BBQuadRight.inFace(p0.vertice) || BBQuadRight.inFace(p1.vertice))
-                {
-                    if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
-                }
-
-                //bottom Check
-                if (BBQuadRight.inFace(p2.vertice) || BBQuadRight.inFace(p3.vertice))
-                {
-                    if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
-                }
-
-            }
-        }
-
-        splitTopPoint = FindPoint3(splitTop, BBQuadRight);
-        splitBottomPoint = FindPoint1(splitBottom, BBQuadRight);
-
-       // Debug.Log("Top Point " + splitTopPoint);
-        //Debug.Log("Bottom Point " + splitBottomPoint);
-
-        //Splitting the Top Quad at the Point 3
-        if (splitTop.Count != 0)
-       {
-           for (int i = 0; i < splitTop.Count; i++)
-           {
-               splitTop[i].CalculateCentre();
-               splitTop[i].CalculateCentrePoints();
-               splitTop[i].CalculateQuadArea();
-       
-               intesectingQuad = splitTop[i];
-       
-               FractureQuads(splitTopPoint);
-               //break;
-            }
-        }
-
-        if (splitBottom.Count != 0)
-        {
-            for (int j = 0; j < splitBottom.Count; j++)
-            {
-                splitBottom[j].CalculateCentre();
-                splitBottom[j].CalculateCentrePoints();
-                splitBottom[j].CalculateQuadArea();
-
-                intesectingQuad = splitBottom[j];
-
-                FractureQuads(splitBottomPoint);
-               // break;
-            }
-        }
-
-
-        for (int i = 0; i < QuadList.Count; i++)
-        {
-            if (QuadList[i] == BigBoy)
-                continue;
-
-            for (int j = 0; j < BBQuadRight.centrePoints.Count; j++)
-            {
-                if (QuadList[i].inFace(BBQuadRight.centrePoints[j]))
-                {
-                    if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
-                }
-            }
-        }
-
-        //Find and Sort Quads into there respective lists based on vertice information
-        for (int i = 0; i < intersectingQuads.Count; i++)
-        {
-            int vertexPointCount = 0;
-
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
-            {
-                if (BBQuadRight.inFace(intersectingQuads[i].vertexPoints[j].vertice))
-                {
-                    vertexPointCount++;
-
+                    //This is Bottom
+                    if (BBQuadRight.inFace(vert0) && BBQuadRight.inFace(vert1))
+                    {
+                        quadstoPush[i].vertexPoints[0].vertice.y = BBQuadRight.vertexPoints[2].vertice.y;
+                        quadstoPush[i].vertexPoints[1].vertice.y = BBQuadRight.vertexPoints[2].vertice.y;
+                    }
+                    //This is Top
+                    if (BBQuadRight.inFace(vert2) && BBQuadRight.inFace(vert3))
+                    {
+                        quadstoPush[i].vertexPoints[2].vertice.y = BBQuadRight.vertexPoints[0].vertice.y;
+                        quadstoPush[i].vertexPoints[3].vertice.y = BBQuadRight.vertexPoints[0].vertice.y;
+                    }
+                    //This is Left
+                    if (BBQuadRight.inFace(vert0) && BBQuadRight.inFace(vert2))
+                    {
+                        quadstoPush[i].vertexPoints[2].vertice.x = BBQuadRight.vertexPoints[1].vertice.x;
+                        quadstoPush[i].vertexPoints[0].vertice.x = BBQuadRight.vertexPoints[1].vertice.x;
+                    }
                 }
             }
 
-            if (vertexPointCount == 4)
+            //Cut Quads who are larger either in X or Y inside the Assimulation Quad
+            if (quadstoCut.Count != 0)
             {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                for (int i = 0; i < quadstoCut.Count; i++)
+                {
+                    //quad to cut will always have a top and a bottom quad so EZ
+                    //Top Quad 
+                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+
+                    topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
+                    topQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
+                    topQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
+
+                    topQuad.CalculateCentre();
+                    topQuad.CalculateQuadArea();
+                    topQuad.CalculateCentrePoints();
+
+                    //Bottom Quad
+                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+
+                    bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
+                    bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
+                    bottomQuad.vertexPoints[2].vertice = new Vector3(quadstoCut[i].vertexPoints[2].vertice.x, BBQuadRight.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[2].vertice.z);
+                    bottomQuad.vertexPoints[3].vertice = new Vector3(quadstoCut[i].vertexPoints[3].vertice.x, BBQuadRight.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[3].vertice.z);
+
+
+                    bottomQuad.CalculateCentre();
+                    bottomQuad.CalculateQuadArea();
+                    bottomQuad.CalculateCentrePoints();
+
+                    if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
+
+                    if (!QuadList.Contains(bottomQuad)) QuadList.Add(bottomQuad);
+                    if (!QuadList.Contains(topQuad)) QuadList.Add(topQuad);
+                }
+            }
+
+            //Seperate split Quad list beased on vertices based on which vertices is within the Quad
+            List<Quad> splitTop = new List<Quad>();
+            List<Quad> splitBottom = new List<Quad>();
+
+
+            Vector3 splitTopPoint = new Vector3();
+            Vector3 splitBottomPoint = new Vector3();
+
+            //Seperate Quads into Top and Bottom Quads
+   
+                for (int i = 0; i < quadstoSplit.Count; i++)
+                {
+                    Vertex p0 = quadstoSplit[i].vertexPoints[0];
+                    Vertex p1 = quadstoSplit[i].vertexPoints[1];
+                    Vertex p2 = quadstoSplit[i].vertexPoints[2];
+                    Vertex p3 = quadstoSplit[i].vertexPoints[3];
+
+
+                    //Top Check
+                    if (BBQuadRight.inFace(p0.vertice) || BBQuadRight.inFace(p1.vertice))
+                    {
+                        if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
+                    }
+
+                    //bottom Check
+                    if (BBQuadRight.inFace(p2.vertice) || BBQuadRight.inFace(p3.vertice))
+                    {
+                        if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
+                    }
+
+                }
+
+                splitTopPoint = FindPoint3(splitTop, BBQuadRight);
+                splitBottomPoint = FindPoint1(splitBottom, BBQuadRight);
+
+                // Debug.Log("Top Point " + splitTopPoint);
+                //Debug.Log("Bottom Point " + splitBottomPoint);
+
+                //Splitting the Top Quad at the Point 3
+                if (splitTop.Count != 0)
+                {
+                    for (int i = 0; i < splitTop.Count; i++)
+                    {
+                        splitTop[i].CalculateCentre();
+                        splitTop[i].CalculateCentrePoints();
+                        splitTop[i].CalculateQuadArea();
+
+                        intesectingQuad = splitTop[i];
+
+                        FractureQuads(splitTopPoint);
+                        //break;
+                    }
+                }
+
+                if (splitBottom.Count != 0)
+                {
+                    for (int j = 0; j < splitBottom.Count; j++)
+                    {
+                        splitBottom[j].CalculateCentre();
+                        splitBottom[j].CalculateCentrePoints();
+                        splitBottom[j].CalculateQuadArea();
+
+                        intesectingQuad = splitBottom[j];
+
+                        FractureQuads(splitBottomPoint);
+                        // break;
+                    }
+                }
+
+
+                for (int i = 0; i < QuadList.Count; i++)
+                {
+                    if (QuadList[i] == BigBoy)
+                        continue;
+
+                    for (int j = 0; j < BBQuadRight.centrePoints.Count; j++)
+                    {
+                        if (QuadList[i].inFace(BBQuadRight.centrePoints[j]))
+                        {
+                            if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
+                        }
+                    }
+                }
+
+                //Find and Sort Quads into there respective lists based on vertice information
+                for (int i = 0; i < intersectingQuads.Count; i++)
+                {
+                    int vertexPointCount = 0;
+
+                    for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+                    {
+                        if (BBQuadRight.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                        {
+                            vertexPointCount++;
+
+                        }
+                    }
+
+                    if (vertexPointCount == 4)
+                    {
+                        if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                    }
+                }
+
+                //Removing Quads Who are Completly inside the Assimulation Quad
+                RemoveQuads(quadstoRemove);
+            
+
+            if (BBQuadRight != null)
+            {
+                BigBoy.vertexPoints[1].vertice = BBQuadRight.vertexPoints[1].vertice;
+                BigBoy.vertexPoints[3].vertice = BBQuadRight.vertexPoints[3].vertice;
+
+                BBQuadRight = null;
+                segmentIntersectionLeftVertices = new List<Vertex>();
+
+                BigBoy.CalculateQuadArea();
+                BigBoy.CalculateCentre();
+                BigBoy.CalculateCentrePoints();
             }
         }
-
-        //Removing Quads Who are Completly inside the Assimulation Quad
-        RemoveQuads(quadstoRemove);
-
-
-        if (BBQuadRight != null && BBQuadRight.area > 1)
-        {
-          BigBoy.vertexPoints[1].vertice = BBQuadRight.vertexPoints[1].vertice;
-          BigBoy.vertexPoints[3].vertice = BBQuadRight.vertexPoints[3].vertice;
-      
-          BBQuadRight = null;
-          segmentIntersectionLeftVertices = new List<Vertex>();
-      
-          BigBoy.CalculateQuadArea();
-          BigBoy.CalculateCentre();
-          BigBoy.CalculateCentrePoints();
-        }
-
-        BIGBOYUPDATE = false;
     }
 
     void LeftQuadAssimulate()
@@ -522,238 +519,239 @@ public class Cubil_Painter : MonoBehaviour
         List<Quad> quadstoSplit = new List<Quad>();
 
 
-
-        //Find and Sort Quads into there respective lists based on vertice information
-        for (int i = 0; i < intersectingQuads.Count; i++)
+        if (intersectingQuads.Count != 0)
         {
-            int vertexPointCount = 0;
-
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+            //Find and Sort Quads into there respective lists based on vertice information
+            for (int i = 0; i < intersectingQuads.Count; i++)
             {
-                if (BBQuadLeft.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                int vertexPointCount = 0;
+
+                for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
                 {
-                    vertexPointCount++;
+                    if (BBQuadLeft.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                    {
+                        vertexPointCount++;
+
+                    }
+                }
+
+                if (vertexPointCount == 4)
+                {
+                    if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount != 0 && vertexPointCount < 3)
+                {
+                    if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount == 0)
+                {
+                    if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount == 1)
+                {
+                    if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
+                }
+            }
+
+            //Push Quads who are only slightly inside the Assimulation Quad
+            if (quadstoPush.Count != 0)
+            {
+                for (int i = 0; i < quadstoPush.Count; i++)
+                {
+
+                    Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
+                    Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
+                    Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
+                    Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
+
+                    //This is Bottom
+                    if (BBQuadLeft.inFace(vert0) && BBQuadLeft.inFace(vert1))
+                    {
+                        quadstoPush[i].vertexPoints[0].vertice.y = BBQuadLeft.vertexPoints[2].vertice.y;
+                        quadstoPush[i].vertexPoints[1].vertice.y = BBQuadLeft.vertexPoints[2].vertice.y;
+                    }
+                    //This is Top
+                    if (BBQuadLeft.inFace(vert2) && BBQuadLeft.inFace(vert3))
+                    {
+                        quadstoPush[i].vertexPoints[2].vertice.y = BBQuadLeft.vertexPoints[0].vertice.y;
+                        quadstoPush[i].vertexPoints[3].vertice.y = BBQuadLeft.vertexPoints[0].vertice.y;
+                    }
+                    //This is Right
+                    if (BBQuadLeft.inFace(vert1) && BBQuadLeft.inFace(vert3))
+                    {
+                        quadstoPush[i].vertexPoints[3].vertice.x = BBQuadLeft.vertexPoints[0].vertice.x;
+                        quadstoPush[i].vertexPoints[1].vertice.x = BBQuadLeft.vertexPoints[0].vertice.x;
+                    }
 
                 }
             }
 
-            if (vertexPointCount == 4)
+            //Cut Quads who are larger either in X or Y inside the Assimulation Quad
+            if (quadstoCut.Count != 0)
             {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount != 0 && vertexPointCount < 3)
-            {
-                if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount == 0)
-            {
-                if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount == 1)
-            {
-                if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
-            }
-        }
-
-        //Push Quads who are only slightly inside the Assimulation Quad
-        if (quadstoPush.Count != 0)
-        {
-            for (int i = 0; i < quadstoPush.Count; i++)
-            {
-
-                Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
-                Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
-                Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
-                Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
-
-                //This is Bottom
-                if (BBQuadLeft.inFace(vert0) && BBQuadLeft.inFace(vert1))
+                for (int i = 0; i < quadstoCut.Count; i++)
                 {
-                    quadstoPush[i].vertexPoints[0].vertice.y = BBQuadLeft.vertexPoints[2].vertice.y;
-                    quadstoPush[i].vertexPoints[1].vertice.y = BBQuadLeft.vertexPoints[2].vertice.y;
-                }
-                //This is Top
-                if (BBQuadLeft.inFace(vert2) && BBQuadLeft.inFace(vert3))
-                {
-                    quadstoPush[i].vertexPoints[2].vertice.y = BBQuadLeft.vertexPoints[0].vertice.y;
-                    quadstoPush[i].vertexPoints[3].vertice.y = BBQuadLeft.vertexPoints[0].vertice.y;
-                }
-                //This is Right
-                if (BBQuadLeft.inFace(vert1) && BBQuadLeft.inFace(vert3))
-                {
-                    quadstoPush[i].vertexPoints[3].vertice.x = BBQuadLeft.vertexPoints[0].vertice.x;
-                    quadstoPush[i].vertexPoints[1].vertice.x = BBQuadLeft.vertexPoints[0].vertice.x;
-                }
+                    //quad to cut will always have a top and a bottom quad so EZ
+                    //Top Quad 
+                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
 
-            }
-        }
+                    topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
+                    topQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
+                    topQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
 
-        //Cut Quads who are larger either in X or Y inside the Assimulation Quad
-        if (quadstoCut.Count != 0)
-        {
-            for (int i = 0; i < quadstoCut.Count; i++)
-            {
-                //quad to cut will always have a top and a bottom quad so EZ
-                //Top Quad 
-                Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    topQuad.CalculateCentre();
+                    topQuad.CalculateQuadArea();
+                    topQuad.CalculateCentrePoints();
 
-                topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
-                topQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
-                topQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
+                    //Bottom Quad
+                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
 
-                topQuad.CalculateCentre();
-                topQuad.CalculateQuadArea();
-                topQuad.CalculateCentrePoints();
-
-                //Bottom Quad
-                Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
-
-                bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
-                bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
-                bottomQuad.vertexPoints[2].vertice = new Vector3(quadstoCut[i].vertexPoints[2].vertice.x, BBQuadLeft.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[2].vertice.z);
-                bottomQuad.vertexPoints[3].vertice = new Vector3(quadstoCut[i].vertexPoints[3].vertice.x, BBQuadLeft.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[3].vertice.z);
+                    bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
+                    bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
+                    bottomQuad.vertexPoints[2].vertice = new Vector3(quadstoCut[i].vertexPoints[2].vertice.x, BBQuadLeft.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[2].vertice.z);
+                    bottomQuad.vertexPoints[3].vertice = new Vector3(quadstoCut[i].vertexPoints[3].vertice.x, BBQuadLeft.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[3].vertice.z);
 
 
-                bottomQuad.CalculateCentre();
-                bottomQuad.CalculateQuadArea();
-                bottomQuad.CalculateCentrePoints();
+                    bottomQuad.CalculateCentre();
+                    bottomQuad.CalculateQuadArea();
+                    bottomQuad.CalculateCentrePoints();
 
-                if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
+                    if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
 
-                if (!QuadList.Contains(bottomQuad)) QuadList.Add(bottomQuad);
-                if (!QuadList.Contains(topQuad)) QuadList.Add(topQuad);
-            }
-        }
-
-        //Seperate split Quad list beased on vertices based on which vertices is within the Quad
-        List<Quad> splitTop = new List<Quad>();
-        List<Quad> splitBottom = new List<Quad>();
-
-
-        Vector3 splitTopPoint = new Vector3();
-        Vector3 splitBottomPoint = new Vector3();
-
-        //Seperate Quads into Top and Bottom Quads
-        if (quadstoSplit.Count != 0)
-        {
-            for (int i = 0; i < quadstoSplit.Count; i++)
-            {
-                Vertex p0 = quadstoSplit[i].vertexPoints[0];
-                Vertex p1 = quadstoSplit[i].vertexPoints[1];
-                Vertex p2 = quadstoSplit[i].vertexPoints[2];
-                Vertex p3 = quadstoSplit[i].vertexPoints[3];
-
-
-                //Top Check
-                if (BBQuadLeft.inFace(p0.vertice) || BBQuadLeft.inFace(p1.vertice))
-                {
-                    if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
-                }
-
-                //bottom Check
-                if (BBQuadLeft.inFace(p2.vertice) || BBQuadLeft.inFace(p3.vertice))
-                {
-                    if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
-                }
-
-            }
-        }
-
-        splitTopPoint = FindPoint2(splitTop, BBQuadLeft);
-        splitBottomPoint = FindPoint0(splitBottom, BBQuadLeft);
-
-        // Debug.Log("Top Point " + splitTopPoint);
-        //Debug.Log("Bottom Point " + splitBottomPoint);
-
-        //Splitting the Top Quad at the Point 3
-        
-        if (splitTop.Count != 0)
-        {
-            for (int i = 0; i < splitTop.Count; i++)
-            {
-                splitTop[i].CalculateCentre();
-                splitTop[i].CalculateCentrePoints();
-                splitTop[i].CalculateQuadArea();
-        
-                intesectingQuad = splitTop[i];
-        
-                FractureQuads(splitTopPoint);
-                //break;
-            }
-        }
-
-        if (splitBottom.Count != 0)
-        {
-            for (int j = 0; j < splitBottom.Count; j++)
-            {
-                splitBottom[j].CalculateCentre();
-                splitBottom[j].CalculateCentrePoints();
-                splitBottom[j].CalculateQuadArea();
-        
-                intesectingQuad = splitBottom[j];
-        
-                FractureQuads(splitBottomPoint);
-                // break;
-            }
-        }
-        
-        
-        for (int i = 0; i < QuadList.Count; i++)
-        {
-            if (QuadList[i] == BigBoy)
-                continue;
-        
-            for (int j = 0; j < BBQuadLeft.centrePoints.Count; j++)
-            {
-                if (QuadList[i].inFace(BBQuadLeft.centrePoints[j]))
-                {
-                    if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
+                    if (!QuadList.Contains(bottomQuad)) QuadList.Add(bottomQuad);
+                    if (!QuadList.Contains(topQuad)) QuadList.Add(topQuad);
                 }
             }
-        }
 
-        //Find and Sort Quads into there respective lists based on vertice information
-        for (int i = 0; i < intersectingQuads.Count; i++)
-        {
-            int vertexPointCount = 0;
+            //Seperate split Quad list beased on vertices based on which vertices is within the Quad
+            List<Quad> splitTop = new List<Quad>();
+            List<Quad> splitBottom = new List<Quad>();
 
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+
+            Vector3 splitTopPoint = new Vector3();
+            Vector3 splitBottomPoint = new Vector3();
+
+            //Seperate Quads into Top and Bottom Quads
+            if (quadstoSplit.Count != 0)
             {
-                if (BBQuadLeft.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                for (int i = 0; i < quadstoSplit.Count; i++)
                 {
-                    vertexPointCount++;
+                    Vertex p0 = quadstoSplit[i].vertexPoints[0];
+                    Vertex p1 = quadstoSplit[i].vertexPoints[1];
+                    Vertex p2 = quadstoSplit[i].vertexPoints[2];
+                    Vertex p3 = quadstoSplit[i].vertexPoints[3];
+
+
+                    //Top Check
+                    if (BBQuadLeft.inFace(p0.vertice) || BBQuadLeft.inFace(p1.vertice))
+                    {
+                        if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
+                    }
+
+                    //bottom Check
+                    if (BBQuadLeft.inFace(p2.vertice) || BBQuadLeft.inFace(p3.vertice))
+                    {
+                        if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
+                    }
 
                 }
             }
 
-            if (vertexPointCount == 4)
+            splitTopPoint = FindPoint2(splitTop, BBQuadLeft);
+            splitBottomPoint = FindPoint0(splitBottom, BBQuadLeft);
+
+            // Debug.Log("Top Point " + splitTopPoint);
+            //Debug.Log("Bottom Point " + splitBottomPoint);
+
+            //Splitting the Top Quad at the Point 3
+
+            if (splitTop.Count != 0)
             {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                for (int i = 0; i < splitTop.Count; i++)
+                {
+                    splitTop[i].CalculateCentre();
+                    splitTop[i].CalculateCentrePoints();
+                    splitTop[i].CalculateQuadArea();
+
+                    intesectingQuad = splitTop[i];
+
+                    FractureQuads(splitTopPoint);
+                    //break;
+                }
+            }
+
+            if (splitBottom.Count != 0)
+            {
+                for (int j = 0; j < splitBottom.Count; j++)
+                {
+                    splitBottom[j].CalculateCentre();
+                    splitBottom[j].CalculateCentrePoints();
+                    splitBottom[j].CalculateQuadArea();
+
+                    intesectingQuad = splitBottom[j];
+
+                    FractureQuads(splitBottomPoint);
+                    // break;
+                }
+            }
+
+
+            for (int i = 0; i < QuadList.Count; i++)
+            {
+                if (QuadList[i] == BigBoy)
+                    continue;
+
+                for (int j = 0; j < BBQuadLeft.centrePoints.Count; j++)
+                {
+                    if (QuadList[i].inFace(BBQuadLeft.centrePoints[j]))
+                    {
+                        if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
+                    }
+                }
+            }
+
+            //Find and Sort Quads into there respective lists based on vertice information
+            for (int i = 0; i < intersectingQuads.Count; i++)
+            {
+                int vertexPointCount = 0;
+
+                for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+                {
+                    if (BBQuadLeft.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                    {
+                        vertexPointCount++;
+
+                    }
+                }
+
+                if (vertexPointCount == 4)
+                {
+                    if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                }
+            }
+
+            //Removing Quads Who are Completly inside the Assimulation Quad
+            RemoveQuads(quadstoRemove);
+
+
+            if (BBQuadLeft != null)
+            {
+                BigBoy.vertexPoints[0].vertice = BBQuadLeft.vertexPoints[0].vertice;
+                BigBoy.vertexPoints[2].vertice = BBQuadLeft.vertexPoints[2].vertice;
+
+                BBQuadLeft = null;
+                segmentIntersectionLeftVertices = new List<Vertex>();
+
+                BigBoy.CalculateQuadArea();
+                BigBoy.CalculateCentre();
+                BigBoy.CalculateCentrePoints();
             }
         }
 
-        //Removing Quads Who are Completly inside the Assimulation Quad
-        RemoveQuads(quadstoRemove);
-
-
-        if (BBQuadLeft != null && BBQuadLeft.area > 1)
-        {
-            BigBoy.vertexPoints[0].vertice = BBQuadLeft.vertexPoints[0].vertice;
-            BigBoy.vertexPoints[2].vertice = BBQuadLeft.vertexPoints[2].vertice;
-
-            BBQuadLeft = null;
-            segmentIntersectionLeftVertices = new List<Vertex>();
-
-            BigBoy.CalculateQuadArea();
-            BigBoy.CalculateCentre();
-            BigBoy.CalculateCentrePoints();
-        }
-
-        BIGBOYUPDATE = false;
     }
 
     void TopQuadAssimulate()
@@ -790,231 +788,233 @@ public class Cubil_Painter : MonoBehaviour
         //Debug.Log(intersectingQuads.Count);
         List<Quad> quadstoSplit = new List<Quad>();
 
-        for (int i = 0; i < intersectingQuads.Count; i++)
-        {
-            int vertexPointCount = 0;
 
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+        if (intersectingQuads.Count != 0)
+        {
+            for (int i = 0; i < intersectingQuads.Count; i++)
             {
-                if (BBQuadTop.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                int vertexPointCount = 0;
+
+                for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
                 {
-                    vertexPointCount++;
+                    if (BBQuadTop.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                    {
+                        vertexPointCount++;
+                    }
+                }
+
+                if (vertexPointCount == 4)
+                {
+                    if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount != 0 && vertexPointCount < 3)
+                {
+                    if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount == 0)
+                {
+                    if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
+                }
+                if (vertexPointCount == 1)
+                {
+                    if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
                 }
             }
 
-            if (vertexPointCount == 4)
+            //Push Quads who are only slightly inside the Assimulation Quad
+            if (quadstoPush.Count != 0)
             {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount != 0 && vertexPointCount < 3)
-            {
-                if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
-            }
-
-            if (vertexPointCount == 0)
-            {
-                if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
-            }
-            if (vertexPointCount == 1)
-            {
-                if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
-            }
-        }
-
-        //Push Quads who are only slightly inside the Assimulation Quad
-        if (quadstoPush.Count != 0)
-        {
-            for (int i = 0; i < quadstoPush.Count; i++)
-            {
-
-                Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
-                Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
-                Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
-                Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
-
-                //This is Bottom
-                if (BBQuadTop.inFace(vert0) && BBQuadTop.inFace(vert1))
+                for (int i = 0; i < quadstoPush.Count; i++)
                 {
-                    quadstoPush[i].vertexPoints[0].vertice.y = BBQuadTop.vertexPoints[2].vertice.y;
-                    quadstoPush[i].vertexPoints[1].vertice.y = BBQuadTop.vertexPoints[2].vertice.y;
-                }
 
-                //This is Left
-                if (BBQuadTop.inFace(vert0) && BBQuadTop.inFace(vert2))
-                {
-                    quadstoPush[i].vertexPoints[0].vertice.x = BBQuadTop.vertexPoints[1].vertice.x;
-                    quadstoPush[i].vertexPoints[2].vertice.x = BBQuadTop.vertexPoints[1].vertice.x;
-                }
-                //This is Right
-                if (BBQuadTop.inFace(vert1) && BBQuadTop.inFace(vert3))
-                {
-                    quadstoPush[i].vertexPoints[3].vertice.x = BBQuadTop.vertexPoints[0].vertice.x;
-                    quadstoPush[i].vertexPoints[1].vertice.x = BBQuadTop.vertexPoints[0].vertice.x;
-                }
+                    Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
+                    Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
+                    Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
+                    Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
 
-            }
-        }
+                    //This is Bottom
+                    if (BBQuadTop.inFace(vert0) && BBQuadTop.inFace(vert1))
+                    {
+                        quadstoPush[i].vertexPoints[0].vertice.y = BBQuadTop.vertexPoints[2].vertice.y;
+                        quadstoPush[i].vertexPoints[1].vertice.y = BBQuadTop.vertexPoints[2].vertice.y;
+                    }
 
-        //Cut Quads who are larger either in X or Y inside the Assimulation Quad
-        if (quadstoCut.Count != 0)
-        {
-            for (int i = 0; i < quadstoCut.Count; i++)
-            {
-                //quad to cut will always have a top and a bottom quad so EZ
-                //Top Quad 
-                Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
-
-                leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
-                leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
-
-                leftQuad.CalculateCentre();
-                leftQuad.CalculateQuadArea();
-                leftQuad.CalculateCentrePoints();
-
-                //Bottom Quad
-                Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
-
-                rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
-                rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadTop.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                rightQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
-                rightQuad.vertexPoints[3].vertice = new Vector3(BBQuadTop.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[3].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-
-
-                rightQuad.CalculateCentre();
-                rightQuad.CalculateQuadArea();
-                rightQuad.CalculateCentrePoints();
-
-                if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
-
-                if (!QuadList.Contains(rightQuad)) QuadList.Add(rightQuad);
-                if (!QuadList.Contains(leftQuad)) QuadList.Add(leftQuad);
-            }
-        }
-
-
-        //Seperate split Quad list beased on vertices based on which vertices is within the Quad
-        List<Quad> splitLeft = new List<Quad>();
-        List<Quad> splitRight = new List<Quad>();
-
-
-        Vector3 splitLeftPoint = new Vector3();
-        Vector3 splitRightPoint = new Vector3();
-
-        //Seperate Quads into Top and Bottom Quads
-        if (quadstoSplit.Count != 0)
-        {
-            for (int i = 0; i < quadstoSplit.Count; i++)
-            {
-                Vertex p0 = quadstoSplit[i].vertexPoints[0];
-                Vertex p1 = quadstoSplit[i].vertexPoints[1];
-                Vertex p2 = quadstoSplit[i].vertexPoints[2];
-                Vertex p3 = quadstoSplit[i].vertexPoints[3];
-
-
-                //Top Check
-                if (BBQuadTop.inFace(p1.vertice) || BBQuadTop.inFace(p3.vertice))
-                {
-                    if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
-                }
-
-                //bottom Check
-                if (BBQuadTop.inFace(p0.vertice) || BBQuadTop.inFace(p2.vertice))
-                {
-                    if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
-                }
-
-            }
-        }
-
-        splitLeftPoint = FindPoint2(splitLeft, BBQuadTop);
-        splitRightPoint = FindPoint3(splitRight, BBQuadTop);
-
-        //Splitting the Top Quad at the Point 3
-        if (splitLeft.Count != 0)
-        {
-            for (int i = 0; i < splitLeft.Count; i++)
-            {
-                splitLeft[i].CalculateCentre();
-                splitLeft[i].CalculateCentrePoints();
-                splitLeft[i].CalculateQuadArea();
-
-                intesectingQuad = splitLeft[i];
-
-                FractureQuads(splitLeftPoint);
-                //break;
-            }
-        }
-
-        if (splitRight.Count != 0)
-        {
-            for (int j = 0; j < splitRight.Count; j++)
-            {
-                splitRight[j].CalculateCentre();
-                splitRight[j].CalculateCentrePoints();
-                splitRight[j].CalculateQuadArea();
-
-                intesectingQuad = splitRight[j];
-
-                FractureQuads(splitRightPoint);
-                // break;
-            }
-        }
-
-        for (int i = 0; i < QuadList.Count; i++)
-        {
-            if (QuadList[i] == BigBoy)
-                continue;
-
-            for (int j = 0; j < BBQuadTop.centrePoints.Count; j++)
-            {
-                if (QuadList[i].inFace(BBQuadTop.centrePoints[j]))
-                {
-                    if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
-                }
-            }
-        }
-
-        //Find and Sort Quads into there respective lists based on vertice information
-        for (int i = 0; i < intersectingQuads.Count; i++)
-        {
-            int vertexPointCount = 0;
-
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
-            {
-                if (BBQuadTop.inFace(intersectingQuads[i].vertexPoints[j].vertice))
-                {
-                    vertexPointCount++;
+                    //This is Left
+                    if (BBQuadTop.inFace(vert0) && BBQuadTop.inFace(vert2))
+                    {
+                        quadstoPush[i].vertexPoints[0].vertice.x = BBQuadTop.vertexPoints[1].vertice.x;
+                        quadstoPush[i].vertexPoints[2].vertice.x = BBQuadTop.vertexPoints[1].vertice.x;
+                    }
+                    //This is Right
+                    if (BBQuadTop.inFace(vert1) && BBQuadTop.inFace(vert3))
+                    {
+                        quadstoPush[i].vertexPoints[3].vertice.x = BBQuadTop.vertexPoints[0].vertice.x;
+                        quadstoPush[i].vertexPoints[1].vertice.x = BBQuadTop.vertexPoints[0].vertice.x;
+                    }
 
                 }
             }
 
-            if (vertexPointCount == 4)
+            //Cut Quads who are larger either in X or Y inside the Assimulation Quad
+            if (quadstoCut.Count != 0)
             {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                for (int i = 0; i < quadstoCut.Count; i++)
+                {
+                    //quad to cut will always have a top and a bottom quad so EZ
+                    //Top Quad 
+                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+
+                    leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
+                    leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
+
+                    leftQuad.CalculateCentre();
+                    leftQuad.CalculateQuadArea();
+                    leftQuad.CalculateCentrePoints();
+
+                    //Bottom Quad
+                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+
+                    rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
+                    rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadTop.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    rightQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
+                    rightQuad.vertexPoints[3].vertice = new Vector3(BBQuadTop.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[3].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+
+
+                    rightQuad.CalculateCentre();
+                    rightQuad.CalculateQuadArea();
+                    rightQuad.CalculateCentrePoints();
+
+                    if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
+
+                    if (!QuadList.Contains(rightQuad)) QuadList.Add(rightQuad);
+                    if (!QuadList.Contains(leftQuad)) QuadList.Add(leftQuad);
+                }
+            }
+
+
+            //Seperate split Quad list beased on vertices based on which vertices is within the Quad
+            List<Quad> splitLeft = new List<Quad>();
+            List<Quad> splitRight = new List<Quad>();
+
+
+            Vector3 splitLeftPoint = new Vector3();
+            Vector3 splitRightPoint = new Vector3();
+
+            //Seperate Quads into Top and Bottom Quads
+            if (quadstoSplit.Count != 0)
+            {
+                for (int i = 0; i < quadstoSplit.Count; i++)
+                {
+                    Vertex p0 = quadstoSplit[i].vertexPoints[0];
+                    Vertex p1 = quadstoSplit[i].vertexPoints[1];
+                    Vertex p2 = quadstoSplit[i].vertexPoints[2];
+                    Vertex p3 = quadstoSplit[i].vertexPoints[3];
+
+
+                    //Top Check
+                    if (BBQuadTop.inFace(p1.vertice) || BBQuadTop.inFace(p3.vertice))
+                    {
+                        if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
+                    }
+
+                    //bottom Check
+                    if (BBQuadTop.inFace(p0.vertice) || BBQuadTop.inFace(p2.vertice))
+                    {
+                        if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
+                    }
+
+                }
+            }
+
+            splitLeftPoint = FindPoint2(splitLeft, BBQuadTop);
+            splitRightPoint = FindPoint3(splitRight, BBQuadTop);
+
+            //Splitting the Top Quad at the Point 3
+            if (splitLeft.Count != 0)
+            {
+                for (int i = 0; i < splitLeft.Count; i++)
+                {
+                    splitLeft[i].CalculateCentre();
+                    splitLeft[i].CalculateCentrePoints();
+                    splitLeft[i].CalculateQuadArea();
+
+                    intesectingQuad = splitLeft[i];
+
+                    FractureQuads(splitLeftPoint);
+                    //break;
+                }
+            }
+
+            if (splitRight.Count != 0)
+            {
+                for (int j = 0; j < splitRight.Count; j++)
+                {
+                    splitRight[j].CalculateCentre();
+                    splitRight[j].CalculateCentrePoints();
+                    splitRight[j].CalculateQuadArea();
+
+                    intesectingQuad = splitRight[j];
+
+                    FractureQuads(splitRightPoint);
+                    // break;
+                }
+            }
+
+            for (int i = 0; i < QuadList.Count; i++)
+            {
+                if (QuadList[i] == BigBoy)
+                    continue;
+
+                for (int j = 0; j < BBQuadTop.centrePoints.Count; j++)
+                {
+                    if (QuadList[i].inFace(BBQuadTop.centrePoints[j]))
+                    {
+                        if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
+                    }
+                }
+            }
+
+            //Find and Sort Quads into there respective lists based on vertice information
+            for (int i = 0; i < intersectingQuads.Count; i++)
+            {
+                int vertexPointCount = 0;
+
+                for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+                {
+                    if (BBQuadTop.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                    {
+                        vertexPointCount++;
+
+                    }
+                }
+
+                if (vertexPointCount == 4)
+                {
+                    if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                }
+            }
+
+            //Removing Quads Who are Completly inside the Assimulation Quad
+            RemoveQuads(quadstoRemove);
+
+
+            if (BBQuadTop != null)
+            {
+                BigBoy.vertexPoints[2].vertice = BBQuadTop.vertexPoints[2].vertice;
+                BigBoy.vertexPoints[3].vertice = BBQuadTop.vertexPoints[3].vertice;
+
+                BBQuadTop = null;
+                segmentIntersectionTopVertices = new List<Vertex>();
+
+                BigBoy.CalculateQuadArea();
+                BigBoy.CalculateCentre();
+                BigBoy.CalculateCentrePoints();
             }
         }
-
-        //Removing Quads Who are Completly inside the Assimulation Quad
-        RemoveQuads(quadstoRemove);
-
-
-        if (BBQuadTop != null && BBQuadTop.area > 1)
-        {
-            BigBoy.vertexPoints[2].vertice = BBQuadTop.vertexPoints[2].vertice;
-            BigBoy.vertexPoints[3].vertice = BBQuadTop.vertexPoints[3].vertice;
-
-            BBQuadTop = null;
-            segmentIntersectionTopVertices = new List<Vertex>();
-
-            BigBoy.CalculateQuadArea();
-            BigBoy.CalculateCentre();
-            BigBoy.CalculateCentrePoints();
-        }
-
-        BIGBOYUPDATE = false;
     }
 
     void BottomQuadAssimulate()
@@ -1051,233 +1051,235 @@ public class Cubil_Painter : MonoBehaviour
         List<Quad> quadstoSplit = new List<Quad>();
         //Debug.Log(intersectingQuads.Count);
 
-        for (int i = 0; i < intersectingQuads.Count; i++)
+        if (intersectingQuads.Count != 0)
         {
-            int vertexPointCount = 0;
 
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+            for (int i = 0; i < intersectingQuads.Count; i++)
             {
-                if (BBQuadBottom.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                int vertexPointCount = 0;
+
+                for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
                 {
-                    vertexPointCount++;
+                    if (BBQuadBottom.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                    {
+                        vertexPointCount++;
+                    }
+                }
+
+                if (vertexPointCount == 4)
+                {
+                    if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount != 0 && vertexPointCount < 3)
+                {
+                    if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount == 0)
+                {
+                    if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
+                }
+
+                if (vertexPointCount == 1)
+                {
+                    if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
                 }
             }
 
-            if (vertexPointCount == 4)
+            //Push Quads who are only slightly inside the Assimulation Quad
+            if (quadstoPush.Count != 0)
             {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                for (int i = 0; i < quadstoPush.Count; i++)
+                {
+
+                    Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
+                    Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
+                    Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
+                    Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
+
+                    //This is Top
+                    if (BBQuadBottom.inFace(vert2) && BBQuadBottom.inFace(vert3))
+                    {
+                        quadstoPush[i].vertexPoints[2].vertice.y = BBQuadBottom.vertexPoints[0].vertice.y;
+                        quadstoPush[i].vertexPoints[3].vertice.y = BBQuadBottom.vertexPoints[0].vertice.y;
+                    }
+                    //This is Left
+                    if (BBQuadBottom.inFace(vert0) && BBQuadBottom.inFace(vert2))
+                    {
+                        quadstoPush[i].vertexPoints[0].vertice.x = BBQuadBottom.vertexPoints[1].vertice.x;
+                        quadstoPush[i].vertexPoints[2].vertice.x = BBQuadBottom.vertexPoints[1].vertice.x;
+                    }
+                    //This is Right
+                    if (BBQuadBottom.inFace(vert1) && BBQuadBottom.inFace(vert3))
+                    {
+                        quadstoPush[i].vertexPoints[3].vertice.x = BBQuadBottom.vertexPoints[0].vertice.x;
+                        quadstoPush[i].vertexPoints[1].vertice.x = BBQuadBottom.vertexPoints[0].vertice.x;
+                    }
+                }
             }
 
-            if (vertexPointCount != 0 && vertexPointCount < 3)
+            //Cut Quads who are larger either in X or Y inside the Assimulation Quad
+            if (quadstoCut.Count != 0)
             {
-                if (!quadstoPush.Contains(intersectingQuads[i])) quadstoPush.Add(intersectingQuads[i]);
+                for (int i = 0; i < quadstoCut.Count; i++)
+                {
+                    //quad to cut will always have a top and a bottom quad so EZ
+                    //Left Quad 
+                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+
+                    leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
+                    leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
+
+                    leftQuad.CalculateCentre();
+                    leftQuad.CalculateQuadArea();
+                    leftQuad.CalculateCentrePoints();
+
+                    //Right Quad
+                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+
+                    rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
+                    rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadBottom.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    rightQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
+                    rightQuad.vertexPoints[3].vertice = new Vector3(BBQuadBottom.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[3].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+
+
+                    rightQuad.CalculateCentre();
+                    rightQuad.CalculateQuadArea();
+                    rightQuad.CalculateCentrePoints();
+
+                    if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
+
+                    if (!QuadList.Contains(rightQuad)) QuadList.Add(rightQuad);
+                    if (!QuadList.Contains(leftQuad)) QuadList.Add(leftQuad);
+                }
             }
 
-            if (vertexPointCount == 0)
+
+            //Seperate split Quad list beased on vertices based on which vertices is within the Quad
+            List<Quad> splitLeft = new List<Quad>();
+            List<Quad> splitRight = new List<Quad>();
+
+
+            Vector3 splitLeftPoint = new Vector3();
+            Vector3 splitRightPoint = new Vector3();
+
+            //Seperate Quads into Top and Bottom Quads
+            if (quadstoSplit.Count != 0)
             {
-                if (!quadstoCut.Contains(intersectingQuads[i])) quadstoCut.Add(intersectingQuads[i]);
+                for (int i = 0; i < quadstoSplit.Count; i++)
+                {
+                    Vertex p0 = quadstoSplit[i].vertexPoints[0];
+                    Vertex p1 = quadstoSplit[i].vertexPoints[1];
+                    Vertex p2 = quadstoSplit[i].vertexPoints[2];
+                    Vertex p3 = quadstoSplit[i].vertexPoints[3];
+
+
+                    //Top Check
+                    if (BBQuadBottom.inFace(p0.vertice) || BBQuadBottom.inFace(p2.vertice))
+                    {
+                        if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
+                    }
+
+                    //bottom Check
+                    if (BBQuadBottom.inFace(p1.vertice) || BBQuadBottom.inFace(p3.vertice))
+                    {
+                        if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
+                    }
+
+                }
+
+
+                splitLeftPoint = FindPoint1(splitLeft, BBQuadBottom);
+                splitRightPoint = FindPoint0(splitRight, BBQuadBottom);
+
+                //Debug.Log("Left Point " + splitLeftPoint);
+                //Debug.Log("Right Point " + splitRightPoint);
+                //
+                //Splitting the Top Quad at the Point 3
+                if (splitLeft.Count != 0)
+                {
+                    for (int i = 0; i < splitLeft.Count; i++)
+                    {
+                        splitLeft[i].CalculateCentre();
+                        splitLeft[i].CalculateCentrePoints();
+                        splitLeft[i].CalculateQuadArea();
+
+                        intesectingQuad = splitLeft[i];
+
+                        FractureQuads(splitLeftPoint);
+                        //break;
+                    }
+                }
+
+                if (splitRight.Count != 0)
+                {
+                    for (int j = 0; j < splitRight.Count; j++)
+                    {
+                        splitRight[j].CalculateCentre();
+                        splitRight[j].CalculateCentrePoints();
+                        splitRight[j].CalculateQuadArea();
+
+                        intesectingQuad = splitRight[j];
+
+                        FractureQuads(splitRightPoint);
+                        // break;
+                    }
+                }
             }
 
-            if (vertexPointCount == 1)
+            for (int i = 0; i < QuadList.Count; i++)
             {
-                if (!quadstoSplit.Contains(intersectingQuads[i])) quadstoSplit.Add(intersectingQuads[i]);
+                if (QuadList[i] == BigBoy)
+                    continue;
+
+                for (int j = 0; j < BBQuadBottom.centrePoints.Count; j++)
+                {
+                    if (QuadList[i].inFace(BBQuadBottom.centrePoints[j]))
+                    {
+                        if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
+                    }
+                }
+            }
+
+            //Find and Sort Quads into there respective lists based on vertice information
+            for (int i = 0; i < intersectingQuads.Count; i++)
+            {
+                int vertexPointCount = 0;
+
+                for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
+                {
+                    if (BBQuadBottom.inFace(intersectingQuads[i].vertexPoints[j].vertice))
+                    {
+                        vertexPointCount++;
+                    }
+                }
+
+                if (vertexPointCount == 4)
+                {
+                    if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
+                }
+            }
+
+            //Removing Quads Who are Completly inside the Assimulation Quad
+            RemoveQuads(quadstoRemove);
+
+            if (BBQuadBottom != null)
+            {
+                BigBoy.vertexPoints[0].vertice = BBQuadBottom.vertexPoints[0].vertice;
+                BigBoy.vertexPoints[1].vertice = BBQuadBottom.vertexPoints[1].vertice;
+
+                BBQuadBottom = null;
+                segmentIntersectionBottomVertices = new List<Vertex>();
+
+                BigBoy.CalculateQuadArea();
+                BigBoy.CalculateCentre();
+                BigBoy.CalculateCentrePoints();
             }
         }
 
-        //Push Quads who are only slightly inside the Assimulation Quad
-        if (quadstoPush.Count != 0)
-        {
-            for (int i = 0; i < quadstoPush.Count; i++)
-            {
-
-                Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
-                Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
-                Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
-                Vector3 vert3 = quadstoPush[i].vertexPoints[3].vertice;
-
-                //This is Top
-                if (BBQuadBottom.inFace(vert2) && BBQuadBottom.inFace(vert3))
-                {
-                    quadstoPush[i].vertexPoints[2].vertice.y = BBQuadBottom.vertexPoints[0].vertice.y;
-                    quadstoPush[i].vertexPoints[3].vertice.y = BBQuadBottom.vertexPoints[0].vertice.y;
-                }
-                //This is Left
-                if (BBQuadBottom.inFace(vert0) && BBQuadBottom.inFace(vert2))
-                {
-                    quadstoPush[i].vertexPoints[0].vertice.x = BBQuadBottom.vertexPoints[1].vertice.x;
-                    quadstoPush[i].vertexPoints[2].vertice.x = BBQuadBottom.vertexPoints[1].vertice.x;
-                }
-                //This is Right
-                if (BBQuadBottom.inFace(vert1) && BBQuadBottom.inFace(vert3))
-                {
-                    quadstoPush[i].vertexPoints[3].vertice.x = BBQuadBottom.vertexPoints[0].vertice.x;
-                    quadstoPush[i].vertexPoints[1].vertice.x = BBQuadBottom.vertexPoints[0].vertice.x;
-                }
-            }
-        }
-
-        //Cut Quads who are larger either in X or Y inside the Assimulation Quad
-        if (quadstoCut.Count != 0)
-        {
-            for (int i = 0; i < quadstoCut.Count; i++)
-            {
-                //quad to cut will always have a top and a bottom quad so EZ
-                //Left Quad 
-                Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
-
-                leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
-                leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
-
-                leftQuad.CalculateCentre();
-                leftQuad.CalculateQuadArea();
-                leftQuad.CalculateCentrePoints();
-
-                //Right Quad
-                Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
-
-                rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
-                rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadBottom.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-                rightQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
-                rightQuad.vertexPoints[3].vertice = new Vector3(BBQuadBottom.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[3].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
-
-
-                rightQuad.CalculateCentre();
-                rightQuad.CalculateQuadArea();
-                rightQuad.CalculateCentrePoints();
-
-                if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
-
-                if (!QuadList.Contains(rightQuad)) QuadList.Add(rightQuad);
-                if (!QuadList.Contains(leftQuad)) QuadList.Add(leftQuad);
-            }
-        }
-
-
-        //Seperate split Quad list beased on vertices based on which vertices is within the Quad
-        List<Quad> splitLeft = new List<Quad>();
-        List<Quad> splitRight = new List<Quad>();
-
-
-        Vector3 splitLeftPoint = new Vector3();
-        Vector3 splitRightPoint = new Vector3();
-
-        //Seperate Quads into Top and Bottom Quads
-        if (quadstoSplit.Count != 0)
-        {
-            for (int i = 0; i < quadstoSplit.Count; i++)
-            {
-                Vertex p0 = quadstoSplit[i].vertexPoints[0];
-                Vertex p1 = quadstoSplit[i].vertexPoints[1];
-                Vertex p2 = quadstoSplit[i].vertexPoints[2];
-                Vertex p3 = quadstoSplit[i].vertexPoints[3];
-
-
-                //Top Check
-                if (BBQuadBottom.inFace(p0.vertice) || BBQuadBottom.inFace(p2.vertice))
-                {
-                    if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
-                }
-
-                //bottom Check
-                if (BBQuadBottom.inFace(p1.vertice) || BBQuadBottom.inFace(p3.vertice))
-                {
-                    if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
-                }
-
-            }
-
-
-            splitLeftPoint = FindPoint1(splitLeft, BBQuadBottom);
-            splitRightPoint = FindPoint0(splitRight, BBQuadBottom);
-
-            //Debug.Log("Left Point " + splitLeftPoint);
-            //Debug.Log("Right Point " + splitRightPoint);
-            //
-            //Splitting the Top Quad at the Point 3
-            if (splitLeft.Count != 0)
-            {
-                for (int i = 0; i < splitLeft.Count; i++)
-                {
-                    splitLeft[i].CalculateCentre();
-                    splitLeft[i].CalculateCentrePoints();
-                    splitLeft[i].CalculateQuadArea();
-
-                    intesectingQuad = splitLeft[i];
-
-                    FractureQuads(splitLeftPoint);
-                    //break;
-                }
-            }
-
-            if (splitRight.Count != 0)
-            {
-                for (int j = 0; j < splitRight.Count; j++)
-                {
-                    splitRight[j].CalculateCentre();
-                    splitRight[j].CalculateCentrePoints();
-                    splitRight[j].CalculateQuadArea();
-
-                    intesectingQuad = splitRight[j];
-
-                    FractureQuads(splitRightPoint);
-                    // break;
-                }
-            }
-        }
-
-        for (int i = 0; i < QuadList.Count; i++)
-        {
-            if (QuadList[i] == BigBoy)
-                continue;
-
-            for (int j = 0; j < BBQuadBottom.centrePoints.Count; j++)
-            {
-                if (QuadList[i].inFace(BBQuadBottom.centrePoints[j]))
-                {
-                    if (!intersectingQuads.Contains(QuadList[i])) intersectingQuads.Add(QuadList[i]);
-                }
-            }
-        }
-
-        //Find and Sort Quads into there respective lists based on vertice information
-        for (int i = 0; i < intersectingQuads.Count; i++)
-        {
-            int vertexPointCount = 0;
-
-            for (int j = 0; j < intersectingQuads[i].vertexPoints.Length; j++)
-            {
-                if (BBQuadBottom.inFace(intersectingQuads[i].vertexPoints[j].vertice))
-                {
-                    vertexPointCount++;
-
-                }
-            }
-
-            if (vertexPointCount == 4)
-            {
-                if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
-            }
-        }
-
-        //Removing Quads Who are Completly inside the Assimulation Quad
-        RemoveQuads(quadstoRemove);
-
-        if (BBQuadBottom != null && BBQuadBottom.area > 1)
-        {
-            BigBoy.vertexPoints[0].vertice = BBQuadBottom.vertexPoints[0].vertice;
-            BigBoy.vertexPoints[1].vertice = BBQuadBottom.vertexPoints[1].vertice;
-
-            BBQuadBottom = null;
-            segmentIntersectionBottomVertices = new List<Vertex>();
-
-            BigBoy.CalculateQuadArea();
-            BigBoy.CalculateCentre();
-            BigBoy.CalculateCentrePoints();
-        }
-
-        BIGBOYUPDATE = false;
     }
 
     Vector3 FindPoint3(List<Quad> list, Quad quad)
@@ -1293,10 +1295,6 @@ public class Cubil_Painter : MonoBehaviour
                 //First Gadda Grab All the points inside the New Quad
                 List<Vector3> centrePointsInside = new List<Vector3>();
 
-                list[i].CalculateCentrePoints();
-                list[i].CalculateQuadArea();
-                list[i].CalculateCentre();
-
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
                     Vector3 p = list[i].centrePoints[j];
@@ -1310,9 +1308,9 @@ public class Cubil_Painter : MonoBehaviour
                 //Find the Top right fron the new list
 
                 //Get highest X 
-                float x = 0;
+                float x = centrePointsInside[0].x;
                 //Get Highest Y
-                float y = 0;
+                float y = centrePointsInside[0].y;
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
@@ -1351,10 +1349,6 @@ public class Cubil_Painter : MonoBehaviour
                 //First Gadda Grab All the points inside the New Quad
                 List<Vector3> centrePointsInside = new List<Vector3>();
 
-                list[i].CalculateCentrePoints();
-                list[i].CalculateQuadArea();
-                list[i].CalculateCentre();
-
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
                     Vector3 p = list[i].centrePoints[j];
@@ -1368,7 +1362,7 @@ public class Cubil_Painter : MonoBehaviour
                 //Find the Top right fron the new list
 
                 //Get highest X 
-                float x = 0;
+                float x = centrePointsInside[0].x;
                 //Get Highest Y
                 float y = centrePointsInside[0].y;
 
@@ -1410,10 +1404,6 @@ public class Cubil_Painter : MonoBehaviour
                 //First Gadda Grab All the points inside the New Quad
                 List<Vector3> centrePointsInside = new List<Vector3>();
 
-                list[i].CalculateCentrePoints();
-                list[i].CalculateQuadArea();
-                list[i].CalculateCentre();
-
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
                     Vector3 p = list[i].centrePoints[j];
@@ -1434,10 +1424,10 @@ public class Cubil_Painter : MonoBehaviour
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
-                    if (centrePointsInside[j].x <= x)
+                    if (centrePointsInside[j].x < x)
                         x = centrePointsInside[j].x;
 
-                    if (centrePointsInside[j].y >= y)
+                    if (centrePointsInside[j].y > y)
                         y = centrePointsInside[j].y;
                 }
 
@@ -1458,7 +1448,6 @@ public class Cubil_Painter : MonoBehaviour
 
     Vector3 FindPoint0(List<Quad> list, Quad quad)
     {
-
         Vector3 result = new Vector3();
 
         if (list.Count != 0)
@@ -1468,10 +1457,6 @@ public class Cubil_Painter : MonoBehaviour
 
                 //First Gadda Grab All the points inside the New Quad
                 List<Vector3> centrePointsInside = new List<Vector3>();
-
-                list[i].CalculateCentrePoints();
-                list[i].CalculateQuadArea();
-                list[i].CalculateCentre();
 
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
@@ -1493,18 +1478,18 @@ public class Cubil_Painter : MonoBehaviour
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
-                    if (centrePointsInside[j].x <= x)
+                    if (centrePointsInside[j].x < x)
                         x = centrePointsInside[j].x;
 
-                    if (centrePointsInside[j].y <= y)
+                    if (centrePointsInside[j].y < y)
                         y = centrePointsInside[j].y;
                 }
 
-                for (int j = 0; j < centrePointsInside.Count; j++)
+                for (int k = 0; k < centrePointsInside.Count; k++)
                 {
-                    if (centrePointsInside[j].x == x && centrePointsInside[j].y == y)
+                    if (centrePointsInside[k].x == x && centrePointsInside[k].y == y)
                     {
-                        result = centrePointsInside[j];
+                        result = centrePointsInside[k];
                     }
 
                 }
@@ -2016,62 +2001,22 @@ public class Cubil_Painter : MonoBehaviour
 
     void UserInput()
     {
-        TransformFace();
         FaceConstruction();
         //ColorCronenCells();
     }
     
-    void TransformFace()
-    {
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            MoveCronen(new Vector3(0, +1, 0));
-        }
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            MoveCronen(new Vector3(0, -1, 0));
-        }
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            MoveCronen(new Vector3(-1, 0, 0));
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            MoveCronen(new Vector3(+1, 0, 0));
-        }
-    }
-
-    void MoveCronen(Vector3 c)
-    {
-       // if (CronenbergList[0].CheckPointInQuad(c))
-       // {
-       //     CronenbergList[0].UpdateCronenVertices(c);
-       // }
-       // 
-       // UpdateCronenConvex();
-       //
-       // int _j = 0;
-       //
-       // for (int i = 0; i < CronenbergList.Count; i++)
-       // {
-       //     ManageCronenMerge(i, _j);
-       // }
-    }
-
     void FaceConstruction()
     {
 
         Vector3 sp = ManageMouseInput();
         pointInCube = g_Utils.pointInCube(sp, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
+        QuadCalculateCentre();
 
-        QuadList = QuadList.OrderByDescending(o => o.area).ToList(); // Sort From Largest to smallest 
-        BigBoyAssimulation();  //Second Cleanup 
-        CleanUpQuads(); //Last CleanUp
+        CheckForInterSectingQuads();
 
         if (pointInCube)
             {
-                CheckForInterSectingQuads();
                 SelectedQuad.SetQuad(sp);
 
                 if (!PointinFace(sp))
@@ -2094,11 +2039,11 @@ public class Cubil_Painter : MonoBehaviour
 
                 if (UPDATE)
                 {
-                    if (ColorRegions)
-                        ColorCronen();
+                    //if (ColorRegions)
+                    //    ColorCronen();
 
-                    FindCronenEdgeQuads();
-                    UpdateCronenConvex();
+                   // FindCronenEdgeQuads();
+                  //  UpdateCronenConvex();
                     CreateMesh();
 
                     UPDATE = false;
@@ -2107,15 +2052,13 @@ public class Cubil_Painter : MonoBehaviour
 
 
         #region Cleanup
-        //---------------------------- CleanUp -----------------------------------------------------
-            CleanUpQuads(); //First Initial CleanUp
-
-            //---------------------------- CleanUp -----------------------------------------------------
-
-        #endregion
-
-        QuadCalculateCentre();
+        //---------------------------- CleanUp -----------------------------------------------------     
+        CleanUpQuads(); //Last CleanUp
         
+        if(!Input.GetMouseButton(1) || !Input.GetMouseButton(0))
+        BigBoyAssimulation();  //Second Cleanup  
+        //---------------------------- CleanUp -----------------------------------------------------
+        #endregion
 
         if (QuadList.Count != 0)
         {
@@ -2125,184 +2068,190 @@ public class Cubil_Painter : MonoBehaviour
             }
         }
 
+        
     }
 
     void QuadCalculateCentre()
     {
-        foreach (Quad q in QuadList)
-        {
-            q.CalculateCentre();
-            q.CalculateCentrePoints();
-        }
-    }
-
-    #region CronenManagment 
-    //---------------------------- CronenManagment -----------------------------------------------------
-    void UpdateCronenConvex()
-    {
         if (QuadList.Count != 0)
         {
-            SetConvexQuad();
-            CalculateConvexInformation();
-            CalculateTotalQuadArea();
-            CheckConvexQuad();
-        }
-    }
-
-    void FindCronenEdgeQuads()
-    {
-        for (int i = 0; i < CronenbergList.Count; i++)
-        {
-            CronenbergList[i].CalculateConvexInformation();
-            CronenbergList[i].CalculateTotalQuadArea();
-            CronenbergList[i].CheckConvexQuad(QuadList);
-            CronenbergList[i].EvaluateCronenEdges();
-        }
-    }
-
-    void ColorCronen()
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
+        
+            foreach (Quad q in QuadList)
             {
-                for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
-                {
-                    Color col = cronenColors[i % cronenColors.Length];
-
-                    CronenbergList[i].cronenQuadList[j].quadColor = col;
-                }
+                q.CalculateQuadArea();
+                q.CalculateCentre();
+                q.CalculateCentrePoints();
             }
         }
     }
 
-    void ColorCronenCells()
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                CronenbergList[i].ColorCells(cronenColors);
-            }
-        }
-    }
-
-    void EvalauteCronens()
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                CronenbergList[i].EvalauteCronen(CronenbergList);
-
-                for (int j = 0; j < CronenbergList.Count; j++)
-                {
-                    if (CronenbergList[i] == CronenbergList[j])
-                        continue;
-
-                    if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-                    {
-                        Debug.Log("There Touching Again");
-                    }
-                }
-            }
-        }
-    }
-
-    bool CheckAndManageBrokenCronenBergs(Quad Qinterecpt, Quad Q1)
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                if (CronenbergList[i].FractorCronenQuads(Qinterecpt, Q1, CronenbergList))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    void CheckAndIniatiateChainCheckBergs(Quad Q0, Quad Q1, Quad Qmerged)
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                CronenbergList[i].MergeCronenQuads(Q0, Q1, Qmerged);
-            }
-        }
-    }
-
-    bool CheckCronenContainsBergsForInterSection(Quad Q0)
-    {
-        bool status = false;
-        int _j = 0;
-
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                if (!CronenbergList[i].IntersectingWithCronen(Q0))
-                {
-                }
-                else
-                {
-                    ManageCronenMerge(i, _j);
-                    status = true;
-                }
-            }
-        }
-
-        intersectingCronens.Clear();
-        return status;
-    }
-
-    void ManageCronenMerge(int i, int _j)
-    {
-        for (int j = 0; j < CronenbergList.Count; j++)
-        {
-            if (CronenbergList[i] == CronenbergList[j])
-            {
-                continue;
-            }
-
-            if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-            {
-                if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
-            }
-
-            if (intersectingCronens.Count < 1)
-            {
-                //Debug.Log(intersectingCronens.Count);
-            }
-            else
-            {
-                if (intersectingCronens.Count != 0)
-                {
-                    for (int k = 0; k < intersectingCronens.Count; k++)
-                    {
-                        if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
-                    }
-                }
-            }
-        }
-    }
-
-    void RemoveFromCronen(Quad Q0)
-    {
-        if (CronenbergList.Count != 0)
-        {
-            for (int i = 0; i < CronenbergList.Count; i++)
-            {
-                if (CronenbergList[i].CheckCronenContains(Q0)) CronenbergList[i].Remove(Q0);
-            }
-        }
-    }
-    //---------------------------- CronenManagment -----------------------------------------------------
-    #endregion
+   // #region CronenManagment 
+   // //---------------------------- CronenManagment -----------------------------------------------------
+   // void UpdateCronenConvex()
+   // {
+   //     if (QuadList.Count != 0)
+   //     {
+   //         SetConvexQuad();
+   //         CalculateConvexInformation();
+   //         CalculateTotalQuadArea();
+   //         CheckConvexQuad();
+   //     }
+   // }
+   //
+   // void FindCronenEdgeQuads()
+   // {
+   //     for (int i = 0; i < CronenbergList.Count; i++)
+   //     {
+   //         CronenbergList[i].CalculateConvexInformation();
+   //         CronenbergList[i].CalculateTotalQuadArea();
+   //         CronenbergList[i].CheckConvexQuad(QuadList);
+   //         CronenbergList[i].EvaluateCronenEdges();
+   //     }
+   // }
+   //
+   // void ColorCronen()
+   // {
+   //     if (CronenbergList.Count != 0)
+   //     {
+   //         for (int i = 0; i < CronenbergList.Count; i++)
+   //         {
+   //             for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
+   //             {
+   //                 Color col = cronenColors[i % cronenColors.Length];
+   //
+   //                 CronenbergList[i].cronenQuadList[j].quadColor = col;
+   //             }
+   //         }
+   //     }
+   // }
+   //
+   // void ColorCronenCells()
+   // {
+   //     if (CronenbergList.Count != 0)
+   //     {
+   //         for (int i = 0; i < CronenbergList.Count; i++)
+   //         {
+   //             CronenbergList[i].ColorCells(cronenColors);
+   //         }
+   //     }
+   // }
+   //
+   // void EvalauteCronens()
+   // {
+   //     if (CronenbergList.Count != 0)
+   //     {
+   //         for (int i = 0; i < CronenbergList.Count; i++)
+   //         {
+   //             CronenbergList[i].EvalauteCronen(CronenbergList);
+   //
+   //             for (int j = 0; j < CronenbergList.Count; j++)
+   //             {
+   //                 if (CronenbergList[i] == CronenbergList[j])
+   //                     continue;
+   //
+   //                 if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
+   //                 {
+   //                     Debug.Log("There Touching Again");
+   //                 }
+   //             }
+   //         }
+   //     }
+   // }
+   //
+   // bool CheckAndManageBrokenCronenBergs(Quad Qinterecpt, Quad Q1)
+   // {
+   //     if (CronenbergList.Count != 0)
+   //     {
+   //         for (int i = 0; i < CronenbergList.Count; i++)
+   //         {
+   //             if (CronenbergList[i].FractorCronenQuads(Qinterecpt, Q1, CronenbergList))
+   //             {
+   //                 return true;
+   //             }
+   //         }
+   //     }
+   //
+   //     return false;
+   // }
+   //
+   // void CheckAndIniatiateChainCheckBergs(Quad Q0, Quad Q1, Quad Qmerged)
+   // {
+   //     if (CronenbergList.Count != 0)
+   //     {
+   //         for (int i = 0; i < CronenbergList.Count; i++)
+   //         {
+   //             CronenbergList[i].MergeCronenQuads(Q0, Q1, Qmerged);
+   //         }
+   //     }
+   // }
+   //
+   // bool CheckCronenContainsBergsForInterSection(Quad Q0)
+   // {
+   //     bool status = false;
+   //     int _j = 0;
+   //
+   //     if (CronenbergList.Count != 0)
+   //     {
+   //         for (int i = 0; i < CronenbergList.Count; i++)
+   //         {
+   //             if (!CronenbergList[i].IntersectingWithCronen(Q0))
+   //             {
+   //             }
+   //             else
+   //             {
+   //                 ManageCronenMerge(i, _j);
+   //                 status = true;
+   //             }
+   //         }
+   //     }
+   //
+   //     intersectingCronens.Clear();
+   //     return status;
+   // }
+   //
+   // void ManageCronenMerge(int i, int _j)
+   // {
+   //     for (int j = 0; j < CronenbergList.Count; j++)
+   //     {
+   //         if (CronenbergList[i] == CronenbergList[j])
+   //         {
+   //             continue;
+   //         }
+   //
+   //         if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
+   //         {
+   //             if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
+   //         }
+   //
+   //         if (intersectingCronens.Count < 1)
+   //         {
+   //             //Debug.Log(intersectingCronens.Count);
+   //         }
+   //         else
+   //         {
+   //             if (intersectingCronens.Count != 0)
+   //             {
+   //                 for (int k = 0; k < intersectingCronens.Count; k++)
+   //                 {
+   //                     if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
+   //                 }
+   //             }
+   //         }
+   //     }
+   // }
+   //
+   // void RemoveFromCronen(Quad Q0)
+   // {
+   //     if (CronenbergList.Count != 0)
+   //     {
+   //         for (int i = 0; i < CronenbergList.Count; i++)
+   //         {
+   //             if (CronenbergList[i].CheckCronenContains(Q0)) CronenbergList[i].Remove(Q0);
+   //         }
+   //     }
+   // }
+   // //---------------------------- CronenManagment -----------------------------------------------------
+   // #endregion
 
     #region Removing Quads
     // ------------------------------------------------ Removing Quads -----------------------------------------------------------------
@@ -2328,10 +2277,10 @@ public class Cubil_Painter : MonoBehaviour
         antiQuadList.Clear();
 
         QuadList.Remove(intesectingQuad);
-        CheckAndManageBrokenCronenBergs(intesectingQuad, intesectingQuad);
+        //CheckAndManageBrokenCronenBergs(intesectingQuad, intesectingQuad);
         intesectingQuad = null;
 
-        EvalauteCronens();
+       // EvalauteCronens();
     }
 
     void CreateOpposingFractures(Quad innerQuad)
@@ -2362,7 +2311,7 @@ public class Cubil_Painter : MonoBehaviour
             opp0.CalculateQuadArea();
             //opp0.quadColor = customColors[0];
             QuadList.Add(opp0);
-            CheckAndManageBrokenCronenBergs(intesectingQuad, opp0);
+            //CheckAndManageBrokenCronenBergs(intesectingQuad, opp0);
         }
 
         if (Mathf.Abs(vert1.vertice.x - sideVert1.vertice.x) > 0 || Mathf.Abs(vert3.vertice.x - sideVert3.vertice.x) > 0)
@@ -2375,7 +2324,7 @@ public class Cubil_Painter : MonoBehaviour
             side0.CalculateQuadArea();
             //side0.quadColor = customColors[1];
             QuadList.Add(side0);
-            CheckAndManageBrokenCronenBergs(intesectingQuad, side0);
+            //CheckAndManageBrokenCronenBergs(intesectingQuad, side0);
         }
 
         if (Mathf.Abs(vert2.vertice.y - oppVert2.vertice.y) > 0 || Mathf.Abs(vert3.vertice.y - oppVert3.vertice.y) > 0)
@@ -2388,7 +2337,7 @@ public class Cubil_Painter : MonoBehaviour
             opp1.CalculateQuadArea();
            // opp1.quadColor = customColors[2];
             QuadList.Add(opp1);
-            CheckAndManageBrokenCronenBergs(intesectingQuad, opp1);
+            //CheckAndManageBrokenCronenBergs(intesectingQuad, opp1);
         }
 
         if (Mathf.Abs(sideVert0.vertice.x - vert0.vertice.x) > 0 || Mathf.Abs(sideVert2.vertice.x - vert2.vertice.x) > 0)
@@ -2401,7 +2350,7 @@ public class Cubil_Painter : MonoBehaviour
             side1.CalculateQuadArea();
             //side1.quadColor = customColors[3];
             QuadList.Add(side1);
-            CheckAndManageBrokenCronenBergs(intesectingQuad, side1);
+            //CheckAndManageBrokenCronenBergs(intesectingQuad, side1);
         }
     }
 
@@ -2446,7 +2395,7 @@ public class Cubil_Painter : MonoBehaviour
 
         QuadList.Add(shatteredQuad);
 
-        CheckAndManageBrokenCronenBergs(intesectingQuad, shatteredQuad);
+        //CheckAndManageBrokenCronenBergs(intesectingQuad, shatteredQuad);
 
         antiVertices.Add(Sidevertex);
         antiVertices.Add(Oppvertex);
@@ -2547,55 +2496,55 @@ public class Cubil_Painter : MonoBehaviour
         return status;
     }
 
-    bool InverseIntersectingVertices(Quad left, Quad right)
-    {
-        bool status = false;
-
-        indexLeft.Clear();
-        indexRight.Clear();
-
-        if (left == right)
-            return false;
-
-        for (int i = left.vertexPoints.Length - 1; i > 0; i--)
-        {
-            for (int j = right.vertexPoints.Length - 1; j > 0; j--)
-            {
-                if (left.vertexPoints[i] == right.vertexPoints[j])
-                {
-                    if (!intersectingVertices.Contains(left.vertexPoints[i])) { intersectingVertices.Add(left.vertexPoints[i]); }
-                    if (!intersectingVertices.Contains(right.vertexPoints[j])) { intersectingVertices.Add(right.vertexPoints[j]); }
-
-                    //if(!indexLeft.Contains(i))
-                    { indexLeft.Add(i); }
-                    //if (!indexRight.Contains(j))
-                    { indexRight.Add(j); }
-
-                    status = true;
-
-                }
-                else
-                {
-                    //left.quadColor = left.quadColor;
-                }
-            }
-        }
-
-        if (indexLeft.Count > 2)
-        {
-            Debug.Log("there are 2 or more Quads");
-        }
-
-        if (indexLeft.Count < 2)
-        { status = false; }
-
-        if (indexRight.Count > 2)
-        { Debug.Log("Right Indices Are Max"); }//status = false; }
-
-        intersectingVertices.Clear();
-
-        return status;
-    }
+   // bool InverseIntersectingVertices(Quad left, Quad right)
+   // {
+   //     bool status = false;
+   //
+   //     indexLeft.Clear();
+   //     indexRight.Clear();
+   //
+   //     if (left == right)
+   //         return false;
+   //
+   //     for (int i = left.vertexPoints.Length - 1; i > 0; i--)
+   //     {
+   //         for (int j = right.vertexPoints.Length - 1; j > 0; j--)
+   //         {
+   //             if (left.vertexPoints[i] == right.vertexPoints[j])
+   //             {
+   //                 if (!intersectingVertices.Contains(left.vertexPoints[i])) { intersectingVertices.Add(left.vertexPoints[i]); }
+   //                 if (!intersectingVertices.Contains(right.vertexPoints[j])) { intersectingVertices.Add(right.vertexPoints[j]); }
+   //
+   //                 //if(!indexLeft.Contains(i))
+   //                 { indexLeft.Add(i); }
+   //                 //if (!indexRight.Contains(j))
+   //                 { indexRight.Add(j); }
+   //
+   //                 status = true;
+   //
+   //             }
+   //             else
+   //             {
+   //                 //left.quadColor = left.quadColor;
+   //             }
+   //         }
+   //     }
+   //
+   //     if (indexLeft.Count > 2)
+   //     {
+   //         Debug.Log("there are 2 or more Quads");
+   //     }
+   //
+   //     if (indexLeft.Count < 2)
+   //     { status = false; }
+   //
+   //     if (indexRight.Count > 2)
+   //     { Debug.Log("Right Indices Are Max"); }//status = false; }
+   //
+   //     intersectingVertices.Clear();
+   //
+   //     return status;
+   // }
 
     void CreateNewQuad(Vector3 sp)
     {
@@ -2603,26 +2552,24 @@ public class Cubil_Painter : MonoBehaviour
         newQuad.quadColor = QuadColor;
         QuadList.Add(newQuad);
 
-        if(CronenbergList.Count != 0)
-        {
-            if (!CheckCronenContainsBergsForInterSection(newQuad))
-            {
-                //Debug.Log("There Wasnt Quad Intersection");
-                CronenbergList.Add(new CronenbergQuad(newQuad));
-            }
-        }
-        else
-        {
-            CronenbergList.Add(new CronenbergQuad(newQuad));
-        }
+       // if(CronenbergList.Count != 0)
+       // {
+       //     if (!CheckCronenContainsBergsForInterSection(newQuad))
+       //     {
+       //         //Debug.Log("There Wasnt Quad Intersection");
+       //        // CronenbergList.Add(new CronenbergQuad(newQuad));
+       //     }
+       // }
+       // else
+       // {
+       //     //CronenbergList.Add(new CronenbergQuad(newQuad));
+       // }
     }
 
     void CleanUpQuads()
     {
         Quad currentQuad = new Quad();
         Quad nextQuad = new Quad();
-
-         QuadList = QuadList.OrderByDescending(o => o.area).ToList();
 
         if (QuadList.Count >= 2)
             {
@@ -2650,25 +2597,7 @@ public class Cubil_Painter : MonoBehaviour
                             QuadList.Remove(nextQuad);
                             QuadList.Add(MergedQuad);
 
-                            CheckAndIniatiateChainCheckBergs(currentQuad, nextQuad, MergedQuad);
-
-                            break;
-                        }
-                        else if (InverseIntersectingVertices(QuadList[i], QuadList[j]))
-                        {
-                            currentQuad = QuadList[i];
-                            nextQuad = QuadList[j];
-
-                            if (currentQuad.quadColor == Color.white)
-                                currentQuad.quadColor = nextQuad.quadColor;
-
-                            Quad MergedQuad = currentQuad.MergeQuads(nextQuad, indexLeft.ToArray(), currentQuad.quadColor);
-
-                            QuadList.Remove(currentQuad);
-                            QuadList.Remove(nextQuad);
-                            QuadList.Add(MergedQuad);
-
-                            CheckAndIniatiateChainCheckBergs(currentQuad, nextQuad, MergedQuad);
+                            //CheckAndIniatiateChainCheckBergs(currentQuad, nextQuad, MergedQuad);
 
                             break;
                         }
@@ -2820,7 +2749,7 @@ public class Cubil_Painter : MonoBehaviour
 
     }
 
-#region Debugging
+    #region Debugging
     void CreateGrid(int _x, int _z)
     {
         Grid = new Vector3[_x, _z];

@@ -575,23 +575,23 @@ public class CronenbergQuad
 
     public void CheckConvexQuad(List<Quad> _MasterQuadList)
     {
-        if (CronenConvexQuad.area == TotalCronenArea && cronenQuadList.Count > 2 && !Input.GetMouseButtonDown(1))
-        {
-            Debug.Log("It Was All Me Baby In The Cronen!");
-
-            Quad newQuad = new Quad();
-
-            for (int i = 0; i < cronenQuadList.Count; i++)
-            {
-                _MasterQuadList.Remove(cronenQuadList[i]);
-            }
-            cronenQuadList.Clear();
-
-            CronenConvexQuad.vertexPoints.CopyTo(newQuad.vertexPoints, 0);
-            if (!cronenQuadList.Contains(CronenConvexQuad)) cronenQuadList.Add(CronenConvexQuad);
-            if (!_MasterQuadList.Contains(CronenConvexQuad)) _MasterQuadList.Add(CronenConvexQuad);
-            SetConvexQuad();
-        }
+        //if (CronenConvexQuad.area == TotalCronenArea && cronenQuadList.Count > 2 && !Input.GetMouseButtonDown(1))
+        //{
+        //    Debug.Log("It Was All Me Baby In The Cronen!");
+        //
+        //    Quad newQuad = new Quad();
+        //
+        //    for (int i = 0; i < cronenQuadList.Count; i++)
+        //    {
+        //        _MasterQuadList.Remove(cronenQuadList[i]);
+        //    }
+        //    cronenQuadList.Clear();
+        //
+        //    CronenConvexQuad.vertexPoints.CopyTo(newQuad.vertexPoints, 0);
+        //    if (!cronenQuadList.Contains(CronenConvexQuad)) cronenQuadList.Add(CronenConvexQuad);
+        //    if (!_MasterQuadList.Contains(CronenConvexQuad)) _MasterQuadList.Add(CronenConvexQuad);
+        //    SetConvexQuad();
+        //}
     }
 
     public void CalculateConvexInformation()
