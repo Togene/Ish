@@ -66,15 +66,22 @@ public class Cubil_Painter : MonoBehaviour
 
     void BigBoyAssimulation() //Handles Bigger Quads simplifying the Mesh
     {
-        QuadList = QuadList.OrderByDescending(o => o.area).ToList();
-
         if (QuadList.Count != 0)
         {
-            BigBoy = QuadList[0]; //if sorted right this should be the largest Area
-            BigBoy.quadColor = Color.black;
+            QuadList = QuadList.OrderByDescending(o => o.area).ToList();
             LargestArea = QuadList[0].area;
 
-            CheckBigBoySides(BigBoy);
+            for (int i = 0; i < QuadList.Count; i++)
+            {
+                BigBoy = QuadList[i]; //if sorted right this should be the largest Area
+                //BigBoy.quadColor = Color.black;
+                
+                BigBoy.CalculateQuadArea();
+                BigBoy.CalculateCentrePoints();
+                BigBoy.CalculateCentre();
+
+                CheckBigBoySides(BigBoy);
+            }
         }
            
     }
@@ -175,43 +182,79 @@ public class Cubil_Painter : MonoBehaviour
         //Quads should be done and evaulated and ready to be checked at this point
         //asking wether we should be going verticall or horizontal
 
-        int horizontalAreaSum = BBQuadLeft.area + BigBoy.area + BBQuadRight.area;
+        int Left = BBQuadLeft.area;
+        int Right = BBQuadRight.area;
 
-        int verticalAreaSum = BBQuadTop.area + BigBoy.area + BBQuadBottom.area;
+        int Top = BBQuadTop.area;
+        int Bottom = BBQuadBottom.area;
 
-
+        int vertical = Top + Bottom + BigBoy.area;
+        int horizontal = Left + Right + BigBoy.area;
         //Cutting Quads, Removing from list and Extending BigBoy
 
-        BBQuadRight.CalculateCentrePoints();
+
         BBQuadRight.CalculateQuadArea();
+        BBQuadRight.CalculateCentrePoints();
         BBQuadRight.CalculateCentre();
 
-        BBQuadLeft.CalculateCentrePoints();
         BBQuadLeft.CalculateQuadArea();
+        BBQuadLeft.CalculateCentrePoints();
         BBQuadLeft.CalculateCentre();
 
-        BBQuadBottom.CalculateCentrePoints();
         BBQuadBottom.CalculateQuadArea();
+        BBQuadBottom.CalculateCentrePoints();
         BBQuadBottom.CalculateCentre();
 
-        BBQuadTop.CalculateCentrePoints();
         BBQuadTop.CalculateQuadArea();
+        BBQuadTop.CalculateCentrePoints();
         BBQuadTop.CalculateCentre();
 
 
-        if (horizontalAreaSum > verticalAreaSum)
+        if (horizontal > vertical) 
         {
-            if(BBQuadRight.area != 0)
+            bool leftGoBig  = false;
+            bool RightGoBig = false;
+
+            for (int i = 0; i < QuadList.Count; i++)
+            {
+                if (Left > QuadList[i].area)
+                {
+                    leftGoBig = true;
+                }
+
+                if (Right > QuadList[i].area)
+                {
+                    RightGoBig = true;
+                }
+            }
+
+            if (BBQuadRight.area != 0)
             RightQuadAssimulate();
 
            if (BBQuadLeft.area != 0)
            LeftQuadAssimulate();
 
         }
-        else if(verticalAreaSum > horizontalAreaSum)
-        {
 
-           if (BBQuadTop.area != 0)
+         if(horizontal < vertical)
+        {
+            bool TopGoBig = false;
+            bool BottomGoBig = false;
+
+            for (int i = 0; i < QuadList.Count; i++)
+            {
+                if (Left > QuadList[i].area)
+                {
+                    TopGoBig = true;
+                }
+
+                if (Right > QuadList[i].area)
+                {
+                    BottomGoBig = true;
+                }
+            }
+
+            if (BBQuadTop.area != 0)
                TopQuadAssimulate();
 
             if (BBQuadBottom.area != 0)
@@ -240,6 +283,7 @@ public class Cubil_Painter : MonoBehaviour
             }
         }
 
+
         //Check the conditions of the quads
 
         //All quads vertices completly outside
@@ -251,7 +295,7 @@ public class Cubil_Painter : MonoBehaviour
         //All quads vertices inside
         List<Quad> quadstoRemove = new List<Quad>();
 
-        //All quads vertices inside
+        //Corner in the Quads
         List<Quad> quadstoSplit = new List<Quad>();
 
 
@@ -267,7 +311,6 @@ public class Cubil_Painter : MonoBehaviour
                     if (BBQuadRight.inFace(intersectingQuads[i].vertexPoints[j].vertice))
                     {
                         vertexPointCount++;
-
                     }
                 }
 
@@ -337,8 +380,8 @@ public class Cubil_Painter : MonoBehaviour
                     topQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
                     topQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
 
-                    topQuad.CalculateCentre();
                     topQuad.CalculateQuadArea();
+                    topQuad.CalculateCentre();
                     topQuad.CalculateCentrePoints();
 
                     //Bottom Quad
@@ -349,9 +392,8 @@ public class Cubil_Painter : MonoBehaviour
                     bottomQuad.vertexPoints[2].vertice = new Vector3(quadstoCut[i].vertexPoints[2].vertice.x, BBQuadRight.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[2].vertice.z);
                     bottomQuad.vertexPoints[3].vertice = new Vector3(quadstoCut[i].vertexPoints[3].vertice.x, BBQuadRight.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[3].vertice.z);
 
-
-                    bottomQuad.CalculateCentre();
                     bottomQuad.CalculateQuadArea();
+                    bottomQuad.CalculateCentre();
                     bottomQuad.CalculateCentrePoints();
 
                     if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
@@ -380,21 +422,28 @@ public class Cubil_Painter : MonoBehaviour
 
 
                     //Top Check
-                    if (BBQuadRight.inFace(p0.vertice) || BBQuadRight.inFace(p1.vertice))
+                    if (BBQuadRight.inFace(p0.vertice))
+                    {
+                        if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
+                    }
+
+                    if (BBQuadRight.inFace(p1.vertice))
                     {
                         if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
                     }
 
                     //bottom Check
-                    if (BBQuadRight.inFace(p2.vertice) || BBQuadRight.inFace(p3.vertice))
+                    if (BBQuadRight.inFace(p2.vertice))
+                    {
+                        if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
+                    }
+
+                    if(BBQuadRight.inFace(p3.vertice))
                     {
                         if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
                     }
 
                 }
-
-                splitTopPoint = FindPoint3(splitTop, BBQuadRight);
-                splitBottomPoint = FindPoint1(splitBottom, BBQuadRight);
 
                 // Debug.Log("Top Point " + splitTopPoint);
                 //Debug.Log("Bottom Point " + splitBottomPoint);
@@ -402,11 +451,14 @@ public class Cubil_Painter : MonoBehaviour
                 //Splitting the Top Quad at the Point 3
                 if (splitTop.Count != 0)
                 {
-                    for (int i = 0; i < splitTop.Count; i++)
+
+                splitTopPoint = FindPoint3(splitTop, BBQuadRight);
+
+                for (int i = 0; i < splitTop.Count; i++)
                     {
+                        splitTop[i].CalculateQuadArea();
                         splitTop[i].CalculateCentre();
                         splitTop[i].CalculateCentrePoints();
-                        splitTop[i].CalculateQuadArea();
 
                         intesectingQuad = splitTop[i];
 
@@ -417,11 +469,14 @@ public class Cubil_Painter : MonoBehaviour
 
                 if (splitBottom.Count != 0)
                 {
-                    for (int j = 0; j < splitBottom.Count; j++)
+
+                splitBottomPoint = FindPoint1(splitBottom, BBQuadRight);
+
+                for (int j = 0; j < splitBottom.Count; j++)
                     {
+                        splitBottom[j].CalculateQuadArea();
                         splitBottom[j].CalculateCentre();
                         splitBottom[j].CalculateCentrePoints();
-                        splitBottom[j].CalculateQuadArea();
 
                         intesectingQuad = splitBottom[j];
 
@@ -603,8 +658,8 @@ public class Cubil_Painter : MonoBehaviour
                     topQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
                     topQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
 
-                    topQuad.CalculateCentre();
                     topQuad.CalculateQuadArea();
+                    topQuad.CalculateCentre();
                     topQuad.CalculateCentrePoints();
 
                     //Bottom Quad
@@ -615,9 +670,8 @@ public class Cubil_Painter : MonoBehaviour
                     bottomQuad.vertexPoints[2].vertice = new Vector3(quadstoCut[i].vertexPoints[2].vertice.x, BBQuadLeft.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[2].vertice.z);
                     bottomQuad.vertexPoints[3].vertice = new Vector3(quadstoCut[i].vertexPoints[3].vertice.x, BBQuadLeft.vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[3].vertice.z);
 
-
-                    bottomQuad.CalculateCentre();
                     bottomQuad.CalculateQuadArea();
+                    bottomQuad.CalculateCentre();
                     bottomQuad.CalculateCentrePoints();
 
                     if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
@@ -647,22 +701,29 @@ public class Cubil_Painter : MonoBehaviour
 
 
                     //Top Check
-                    if (BBQuadLeft.inFace(p0.vertice) || BBQuadLeft.inFace(p1.vertice))
+                    if (BBQuadLeft.inFace(p0.vertice))
+                    {
+                        if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
+                    }
+
+                    if(BBQuadLeft.inFace(p1.vertice))
                     {
                         if (!splitTop.Contains(quadstoSplit[i])) splitTop.Add(quadstoSplit[i]);
                     }
 
                     //bottom Check
-                    if (BBQuadLeft.inFace(p2.vertice) || BBQuadLeft.inFace(p3.vertice))
+                    if (BBQuadLeft.inFace(p2.vertice))
+                    {
+                        if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
+                    }
+
+                    if (BBQuadLeft.inFace(p3.vertice))
                     {
                         if (!splitBottom.Contains(quadstoSplit[i])) splitBottom.Add(quadstoSplit[i]);
                     }
 
                 }
             }
-
-            splitTopPoint = FindPoint2(splitTop, BBQuadLeft);
-            splitBottomPoint = FindPoint0(splitBottom, BBQuadLeft);
 
             // Debug.Log("Top Point " + splitTopPoint);
             //Debug.Log("Bottom Point " + splitBottomPoint);
@@ -671,11 +732,13 @@ public class Cubil_Painter : MonoBehaviour
 
             if (splitTop.Count != 0)
             {
+                splitTopPoint = FindPoint2(splitTop, BBQuadLeft);
+
                 for (int i = 0; i < splitTop.Count; i++)
                 {
+                    splitTop[i].CalculateQuadArea();
                     splitTop[i].CalculateCentre();
                     splitTop[i].CalculateCentrePoints();
-                    splitTop[i].CalculateQuadArea();
 
                     intesectingQuad = splitTop[i];
 
@@ -686,11 +749,13 @@ public class Cubil_Painter : MonoBehaviour
 
             if (splitBottom.Count != 0)
             {
+                splitBottomPoint = FindPoint0(splitBottom, BBQuadLeft);
+
                 for (int j = 0; j < splitBottom.Count; j++)
                 {
+                    splitBottom[j].CalculateQuadArea();
                     splitBottom[j].CalculateCentre();
                     splitBottom[j].CalculateCentrePoints();
-                    splitBottom[j].CalculateQuadArea();
 
                     intesectingQuad = splitBottom[j];
 
@@ -871,8 +936,8 @@ public class Cubil_Painter : MonoBehaviour
                     leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
 
-                    leftQuad.CalculateCentre();
                     leftQuad.CalculateQuadArea();
+                    leftQuad.CalculateCentre();
                     leftQuad.CalculateCentrePoints();
 
                     //Bottom Quad
@@ -884,8 +949,8 @@ public class Cubil_Painter : MonoBehaviour
                     rightQuad.vertexPoints[3].vertice = new Vector3(BBQuadTop.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[3].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
 
 
-                    rightQuad.CalculateCentre();
                     rightQuad.CalculateQuadArea();
+                    rightQuad.CalculateCentre();
                     rightQuad.CalculateCentrePoints();
 
                     if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
@@ -916,13 +981,23 @@ public class Cubil_Painter : MonoBehaviour
 
 
                     //Top Check
-                    if (BBQuadTop.inFace(p1.vertice) || BBQuadTop.inFace(p3.vertice))
+                    if (BBQuadTop.inFace(p1.vertice))
+                    {
+                        if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
+                    }
+
+                    if (BBQuadTop.inFace(p3.vertice))
                     {
                         if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
                     }
 
                     //bottom Check
-                    if (BBQuadTop.inFace(p0.vertice) || BBQuadTop.inFace(p2.vertice))
+                    if (BBQuadTop.inFace(p0.vertice))
+                    {
+                        if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
+                    }
+
+                    if (BBQuadTop.inFace(p2.vertice))
                     {
                         if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
                     }
@@ -930,17 +1005,16 @@ public class Cubil_Painter : MonoBehaviour
                 }
             }
 
-            splitLeftPoint = FindPoint2(splitLeft, BBQuadTop);
-            splitRightPoint = FindPoint3(splitRight, BBQuadTop);
-
             //Splitting the Top Quad at the Point 3
             if (splitLeft.Count != 0)
             {
+                splitLeftPoint = FindPoint2(splitLeft, BBQuadTop);
+
                 for (int i = 0; i < splitLeft.Count; i++)
                 {
+                    splitLeft[i].CalculateQuadArea();
                     splitLeft[i].CalculateCentre();
                     splitLeft[i].CalculateCentrePoints();
-                    splitLeft[i].CalculateQuadArea();
 
                     intesectingQuad = splitLeft[i];
 
@@ -951,11 +1025,13 @@ public class Cubil_Painter : MonoBehaviour
 
             if (splitRight.Count != 0)
             {
+                splitRightPoint = FindPoint3(splitRight, BBQuadTop);
+
                 for (int j = 0; j < splitRight.Count; j++)
                 {
+                    splitRight[j].CalculateQuadArea();
                     splitRight[j].CalculateCentre();
                     splitRight[j].CalculateCentrePoints();
-                    splitRight[j].CalculateQuadArea();
 
                     intesectingQuad = splitRight[j];
 
@@ -1133,8 +1209,8 @@ public class Cubil_Painter : MonoBehaviour
                     leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
 
-                    leftQuad.CalculateCentre();
                     leftQuad.CalculateQuadArea();
+                    leftQuad.CalculateCentre();
                     leftQuad.CalculateCentrePoints();
 
                     //Right Quad
@@ -1145,9 +1221,8 @@ public class Cubil_Painter : MonoBehaviour
                     rightQuad.vertexPoints[2] = quadstoCut[i].vertexPoints[2];
                     rightQuad.vertexPoints[3].vertice = new Vector3(BBQuadBottom.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[3].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
 
-
-                    rightQuad.CalculateCentre();
                     rightQuad.CalculateQuadArea();
+                    rightQuad.CalculateCentre();
                     rightQuad.CalculateCentrePoints();
 
                     if (QuadList.Contains(quadstoCut[i])) QuadList.Remove(quadstoCut[i]);
@@ -1162,7 +1237,6 @@ public class Cubil_Painter : MonoBehaviour
             List<Quad> splitLeft = new List<Quad>();
             List<Quad> splitRight = new List<Quad>();
 
-
             Vector3 splitLeftPoint = new Vector3();
             Vector3 splitRightPoint = new Vector3();
 
@@ -1176,56 +1250,58 @@ public class Cubil_Painter : MonoBehaviour
                     Vertex p2 = quadstoSplit[i].vertexPoints[2];
                     Vertex p3 = quadstoSplit[i].vertexPoints[3];
 
-
                     //Top Check
-                    if (BBQuadBottom.inFace(p0.vertice) || BBQuadBottom.inFace(p2.vertice))
+                    if (BBQuadBottom.inFace(p0.vertice))
+                    {
+                        if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
+                    }
+
+                    if(BBQuadBottom.inFace(p2.vertice))
                     {
                         if (!splitLeft.Contains(quadstoSplit[i])) splitLeft.Add(quadstoSplit[i]);
                     }
 
                     //bottom Check
-                    if (BBQuadBottom.inFace(p1.vertice) || BBQuadBottom.inFace(p3.vertice))
+                    if (BBQuadBottom.inFace(p1.vertice))
                     {
                         if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
                     }
 
+                    if(BBQuadBottom.inFace(p3.vertice))
+                    {
+                        if (!splitRight.Contains(quadstoSplit[i])) splitRight.Add(quadstoSplit[i]);
+                    }
                 }
 
-
-                splitLeftPoint = FindPoint1(splitLeft, BBQuadBottom);
-                splitRightPoint = FindPoint0(splitRight, BBQuadBottom);
-
-                //Debug.Log("Left Point " + splitLeftPoint);
-                //Debug.Log("Right Point " + splitRightPoint);
-                //
-                //Splitting the Top Quad at the Point 3
                 if (splitLeft.Count != 0)
                 {
+                    splitLeftPoint = FindPoint1(splitLeft, BBQuadBottom);
+
                     for (int i = 0; i < splitLeft.Count; i++)
                     {
+                        splitLeft[i].CalculateQuadArea();
                         splitLeft[i].CalculateCentre();
                         splitLeft[i].CalculateCentrePoints();
-                        splitLeft[i].CalculateQuadArea();
 
                         intesectingQuad = splitLeft[i];
 
                         FractureQuads(splitLeftPoint);
-                        //break;
                     }
                 }
 
                 if (splitRight.Count != 0)
                 {
+                    splitRightPoint = FindPoint0(splitRight, BBQuadBottom);
+
                     for (int j = 0; j < splitRight.Count; j++)
                     {
+                        splitRight[j].CalculateQuadArea();
                         splitRight[j].CalculateCentre();
                         splitRight[j].CalculateCentrePoints();
-                        splitRight[j].CalculateQuadArea();
 
                         intesectingQuad = splitRight[j];
 
                         FractureQuads(splitRightPoint);
-                        // break;
                     }
                 }
             }
@@ -1284,17 +1360,15 @@ public class Cubil_Painter : MonoBehaviour
 
     Vector3 FindPoint3(List<Quad> list, Quad quad)
     {
-
         Vector3 result = new Vector3();
-        
+
+        List<Vector3> centrePointsInside = new List<Vector3>();
+
         if (list.Count != 0)
         {
             for (int i = 0; i < list.Count; i++)
             {
-
                 //First Gadda Grab All the points inside the New Quad
-                List<Vector3> centrePointsInside = new List<Vector3>();
-
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
                     Vector3 p = list[i].centrePoints[j];
@@ -1306,19 +1380,20 @@ public class Cubil_Painter : MonoBehaviour
                 }
 
                 //Find the Top right fron the new list
-
-                //Get highest X 
-                float x = centrePointsInside[0].x;
-                //Get Highest Y
-                float y = centrePointsInside[0].y;
+                float x = 0;
+                float y = 0;
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
                     if (centrePointsInside[j].x > x)
+                    {
                         x = centrePointsInside[j].x;
+                    }
 
                     if (centrePointsInside[j].y > y)
+                    {
                         y = centrePointsInside[j].y;
+                    }
                 }
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
@@ -1341,13 +1416,13 @@ public class Cubil_Painter : MonoBehaviour
 
         Vector3 result = new Vector3();
 
+        //First Gadda Grab All the points inside the New Quad
+        List<Vector3> centrePointsInside = new List<Vector3>();
+
         if (list.Count != 0)
         {
             for (int i = 0; i < list.Count; i++)
             {
-
-                //First Gadda Grab All the points inside the New Quad
-                List<Vector3> centrePointsInside = new List<Vector3>();
 
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
@@ -1361,19 +1436,22 @@ public class Cubil_Painter : MonoBehaviour
 
                 //Find the Top right fron the new list
 
-                //Get highest X 
-                float x = centrePointsInside[0].x;
-                //Get Highest Y
+
+                float x = 0;
                 float y = centrePointsInside[0].y;
 
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
                     if (centrePointsInside[j].x > x)
+                    {
                         x = centrePointsInside[j].x;
+                    }
 
                     if (centrePointsInside[j].y < y)
+                    {
                         y = centrePointsInside[j].y;
+                    }
                 }
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
@@ -1396,13 +1474,13 @@ public class Cubil_Painter : MonoBehaviour
 
         Vector3 result = new Vector3();
 
+        //First Gadda Grab All the points inside the New Quad
+        List<Vector3> centrePointsInside = new List<Vector3>();
+
         if (list.Count != 0)
         {
             for (int i = 0; i < list.Count; i++)
             {
-
-                //First Gadda Grab All the points inside the New Quad
-                List<Vector3> centrePointsInside = new List<Vector3>();
 
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
@@ -1416,19 +1494,21 @@ public class Cubil_Painter : MonoBehaviour
 
                 //Find the Top right fron the new list
 
-                //Get highest X 
                 float x = centrePointsInside[0].x;
-                //Get Highest Y
-                float y = centrePointsInside[0].y;
+                float y = 0;
 
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
                 {
                     if (centrePointsInside[j].x < x)
+                    {
                         x = centrePointsInside[j].x;
+                    }
 
                     if (centrePointsInside[j].y > y)
+                    {
                         y = centrePointsInside[j].y;
+                    }
                 }
 
                 for (int j = 0; j < centrePointsInside.Count; j++)
@@ -1450,14 +1530,13 @@ public class Cubil_Painter : MonoBehaviour
     {
         Vector3 result = new Vector3();
 
+        //First Gadda Grab All the points inside the New Quad
+        List<Vector3> centrePointsInside = new List<Vector3>();
+
         if (list.Count != 0)
         {
             for (int i = 0; i < list.Count; i++)
             {
-
-                //First Gadda Grab All the points inside the New Quad
-                List<Vector3> centrePointsInside = new List<Vector3>();
-
                 for (int j = 0; j < list[i].centrePoints.Count; j++)
                 {
                     Vector3 p = list[i].centrePoints[j];
@@ -1468,21 +1547,20 @@ public class Cubil_Painter : MonoBehaviour
                     }
                 }
 
-                //Find the Top right fron the new list
-
-                //Get highest X 
                 float x = centrePointsInside[0].x;
-                //Get Highest Y
                 float y = centrePointsInside[0].y;
 
-
-                for (int j = 0; j < centrePointsInside.Count; j++)
+                for (int f = 0; f < centrePointsInside.Count; f++)
                 {
-                    if (centrePointsInside[j].x < x)
-                        x = centrePointsInside[j].x;
+                    if (centrePointsInside[f].x < x)
+                    {
+                        x = centrePointsInside[f].x;
+                    }
 
-                    if (centrePointsInside[j].y < y)
-                        y = centrePointsInside[j].y;
+                    if (centrePointsInside[f].y < y)
+                    {
+                        y = centrePointsInside[f].y;
+                    }
                 }
 
                 for (int k = 0; k < centrePointsInside.Count; k++)
@@ -1822,27 +1900,21 @@ public class Cubil_Painter : MonoBehaviour
 
             for(int j = 0; j < 4; j++)
             {
-
                 //Checking if phantoms balls are touching big boy's parimetre
                 if (bigboy.inFace(testies[j].vertice))
                 {
                     return true;
                 }
-
                 for (int k = 0; k < bigboy.vertexPoints.Length; k++)
                 {
                     if (testies[j] == bigboy.vertexPoints[k])
                     {
                         ///Debug.Log("Phantom Balls Touching the BigBoy!");
                         return true;
-                    }
-                    
-                }
-       
+                    }                  
+                }     
             }
-
         }
-
         return false;
     }
 
@@ -2007,11 +2079,10 @@ public class Cubil_Painter : MonoBehaviour
     
     void FaceConstruction()
     {
-
         Vector3 sp = ManageMouseInput();
         pointInCube = g_Utils.pointInCube(sp, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
-        QuadCalculateCentre();
+        //QuadCalculateCentre();
 
         CheckForInterSectingQuads();
 
@@ -2035,30 +2106,18 @@ public class Cubil_Painter : MonoBehaviour
                         UPDATE = true;
                     }
                 }
-
-
-                if (UPDATE)
+            if (UPDATE)
                 {
-                    //if (ColorRegions)
-                    //    ColorCronen();
-
-                   // FindCronenEdgeQuads();
-                  //  UpdateCronenConvex();
-                    CreateMesh();
 
                     UPDATE = false;
                 }
             }
 
 
-        #region Cleanup
-        //---------------------------- CleanUp -----------------------------------------------------     
         CleanUpQuads(); //Last CleanUp
-        
-        if(!Input.GetMouseButton(1) || !Input.GetMouseButton(0))
         BigBoyAssimulation();  //Second Cleanup  
-        //---------------------------- CleanUp -----------------------------------------------------
-        #endregion
+        CreateMesh();
+
 
         if (QuadList.Count != 0)
         {
@@ -2070,7 +2129,6 @@ public class Cubil_Painter : MonoBehaviour
 
         
     }
-
     void QuadCalculateCentre()
     {
         if (QuadList.Count != 0)
@@ -2085,181 +2143,18 @@ public class Cubil_Painter : MonoBehaviour
         }
     }
 
-   // #region CronenManagment 
-   // //---------------------------- CronenManagment -----------------------------------------------------
-   // void UpdateCronenConvex()
-   // {
-   //     if (QuadList.Count != 0)
-   //     {
-   //         SetConvexQuad();
-   //         CalculateConvexInformation();
-   //         CalculateTotalQuadArea();
-   //         CheckConvexQuad();
-   //     }
-   // }
-   //
-   // void FindCronenEdgeQuads()
-   // {
-   //     for (int i = 0; i < CronenbergList.Count; i++)
-   //     {
-   //         CronenbergList[i].CalculateConvexInformation();
-   //         CronenbergList[i].CalculateTotalQuadArea();
-   //         CronenbergList[i].CheckConvexQuad(QuadList);
-   //         CronenbergList[i].EvaluateCronenEdges();
-   //     }
-   // }
-   //
-   // void ColorCronen()
-   // {
-   //     if (CronenbergList.Count != 0)
-   //     {
-   //         for (int i = 0; i < CronenbergList.Count; i++)
-   //         {
-   //             for (int j = 0; j < CronenbergList[i].cronenQuadList.Count; j++)
-   //             {
-   //                 Color col = cronenColors[i % cronenColors.Length];
-   //
-   //                 CronenbergList[i].cronenQuadList[j].quadColor = col;
-   //             }
-   //         }
-   //     }
-   // }
-   //
-   // void ColorCronenCells()
-   // {
-   //     if (CronenbergList.Count != 0)
-   //     {
-   //         for (int i = 0; i < CronenbergList.Count; i++)
-   //         {
-   //             CronenbergList[i].ColorCells(cronenColors);
-   //         }
-   //     }
-   // }
-   //
-   // void EvalauteCronens()
-   // {
-   //     if (CronenbergList.Count != 0)
-   //     {
-   //         for (int i = 0; i < CronenbergList.Count; i++)
-   //         {
-   //             CronenbergList[i].EvalauteCronen(CronenbergList);
-   //
-   //             for (int j = 0; j < CronenbergList.Count; j++)
-   //             {
-   //                 if (CronenbergList[i] == CronenbergList[j])
-   //                     continue;
-   //
-   //                 if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-   //                 {
-   //                     Debug.Log("There Touching Again");
-   //                 }
-   //             }
-   //         }
-   //     }
-   // }
-   //
-   // bool CheckAndManageBrokenCronenBergs(Quad Qinterecpt, Quad Q1)
-   // {
-   //     if (CronenbergList.Count != 0)
-   //     {
-   //         for (int i = 0; i < CronenbergList.Count; i++)
-   //         {
-   //             if (CronenbergList[i].FractorCronenQuads(Qinterecpt, Q1, CronenbergList))
-   //             {
-   //                 return true;
-   //             }
-   //         }
-   //     }
-   //
-   //     return false;
-   // }
-   //
-   // void CheckAndIniatiateChainCheckBergs(Quad Q0, Quad Q1, Quad Qmerged)
-   // {
-   //     if (CronenbergList.Count != 0)
-   //     {
-   //         for (int i = 0; i < CronenbergList.Count; i++)
-   //         {
-   //             CronenbergList[i].MergeCronenQuads(Q0, Q1, Qmerged);
-   //         }
-   //     }
-   // }
-   //
-   // bool CheckCronenContainsBergsForInterSection(Quad Q0)
-   // {
-   //     bool status = false;
-   //     int _j = 0;
-   //
-   //     if (CronenbergList.Count != 0)
-   //     {
-   //         for (int i = 0; i < CronenbergList.Count; i++)
-   //         {
-   //             if (!CronenbergList[i].IntersectingWithCronen(Q0))
-   //             {
-   //             }
-   //             else
-   //             {
-   //                 ManageCronenMerge(i, _j);
-   //                 status = true;
-   //             }
-   //         }
-   //     }
-   //
-   //     intersectingCronens.Clear();
-   //     return status;
-   // }
-   //
-   // void ManageCronenMerge(int i, int _j)
-   // {
-   //     for (int j = 0; j < CronenbergList.Count; j++)
-   //     {
-   //         if (CronenbergList[i] == CronenbergList[j])
-   //         {
-   //             continue;
-   //         }
-   //
-   //         if (CronenbergList[i].CronenQuadAndMergeIntercepting(CronenbergList[j]))
-   //         {
-   //             if (!intersectingCronens.Contains(CronenbergList[j])) intersectingCronens.Add(CronenbergList[j]);
-   //         }
-   //
-   //         if (intersectingCronens.Count < 1)
-   //         {
-   //             //Debug.Log(intersectingCronens.Count);
-   //         }
-   //         else
-   //         {
-   //             if (intersectingCronens.Count != 0)
-   //             {
-   //                 for (int k = 0; k < intersectingCronens.Count; k++)
-   //                 {
-   //                     if (CronenbergList.Contains(CronenbergList[_j])) CronenbergList.Remove(intersectingCronens[k]);
-   //                 }
-   //             }
-   //         }
-   //     }
-   // }
-   //
-   // void RemoveFromCronen(Quad Q0)
-   // {
-   //     if (CronenbergList.Count != 0)
-   //     {
-   //         for (int i = 0; i < CronenbergList.Count; i++)
-   //         {
-   //             if (CronenbergList[i].CheckCronenContains(Q0)) CronenbergList[i].Remove(Q0);
-   //         }
-   //     }
-   // }
-   // //---------------------------- CronenManagment -----------------------------------------------------
-   // #endregion
-
     #region Removing Quads
     // ------------------------------------------------ Removing Quads -----------------------------------------------------------------
     void FractureQuads(Vector3 sp)
     {
         Quad newAntiQuad = new Quad(sp, new Vector3(0, 0, -1));
 
-        newAntiQuad.quadColor = Color.black;      
+        newAntiQuad.quadColor = Color.black;
+
+        newAntiQuad.CalculateQuadArea();
+        newAntiQuad.CalculateCentre();
+        newAntiQuad.CalculateCentrePoints();
+
         antiQuadList.Add(newAntiQuad);
         FindBordersAndBreak(newAntiQuad);
     }
@@ -2308,7 +2203,11 @@ public class Cubil_Painter : MonoBehaviour
             opp0.vertexPoints[1] = new Vertex(oppVert1.vertice, oppVert1.normal, oppVert1.centre);
             opp0.vertexPoints[2] = new Vertex(vert0.vertice, vert0.normal, vert0.centre);
             opp0.vertexPoints[3] = new Vertex(vert1.vertice, vert1.normal, vert1.centre);
+
             opp0.CalculateQuadArea();
+            opp0.CalculateCentre();
+            opp0.CalculateCentrePoints();
+
             //opp0.quadColor = customColors[0];
             QuadList.Add(opp0);
             //CheckAndManageBrokenCronenBergs(intesectingQuad, opp0);
@@ -2321,7 +2220,11 @@ public class Cubil_Painter : MonoBehaviour
             side0.vertexPoints[1] = new Vertex(sideVert1.vertice, sideVert1.normal, sideVert1.centre);
             side0.vertexPoints[2] = new Vertex(vert3.vertice, vert3.normal, vert3.centre);
             side0.vertexPoints[3] = new Vertex(sideVert3.vertice, sideVert3.normal, sideVert3.centre);
+
             side0.CalculateQuadArea();
+            side0.CalculateCentre();
+            side0.CalculateCentrePoints();
+
             //side0.quadColor = customColors[1];
             QuadList.Add(side0);
             //CheckAndManageBrokenCronenBergs(intesectingQuad, side0);
@@ -2334,8 +2237,12 @@ public class Cubil_Painter : MonoBehaviour
             opp1.vertexPoints[1] = new Vertex(vert3.vertice, vert3.normal, vert3.centre);
             opp1.vertexPoints[2] = new Vertex(oppVert2.vertice, oppVert2.normal, oppVert2.centre);
             opp1.vertexPoints[3] = new Vertex(oppVert3.vertice, oppVert3.normal, oppVert3.centre);
+
             opp1.CalculateQuadArea();
-           // opp1.quadColor = customColors[2];
+            opp1.CalculateCentre();
+            opp1.CalculateCentrePoints();
+
+            // opp1.quadColor = customColors[2];
             QuadList.Add(opp1);
             //CheckAndManageBrokenCronenBergs(intesectingQuad, opp1);
         }
@@ -2347,7 +2254,11 @@ public class Cubil_Painter : MonoBehaviour
             side1.vertexPoints[1] = new Vertex(vert0.vertice, vert0.normal, vert0.centre);
             side1.vertexPoints[2] = new Vertex(sideVert2.vertice, sideVert2.normal, sideVert2.centre);
             side1.vertexPoints[3] = new Vertex(vert2.vertice, vert2.normal, vert2.centre);
+
             side1.CalculateQuadArea();
+            side1.CalculateCentre();
+            side1.CalculateCentrePoints();
+
             //side1.quadColor = customColors[3];
             QuadList.Add(side1);
             //CheckAndManageBrokenCronenBergs(intesectingQuad, side1);
@@ -2393,9 +2304,11 @@ public class Cubil_Painter : MonoBehaviour
         shatteredQuad.vertexPoints[oppIndex] = Oppvertex;
         shatteredQuad.vertexPoints[sideIndex] = Sidevertex;
 
-        QuadList.Add(shatteredQuad);
+        shatteredQuad.CalculateQuadArea();
+        shatteredQuad.CalculateCentrePoints();
+        shatteredQuad.CalculateCentre();
 
-        //CheckAndManageBrokenCronenBergs(intesectingQuad, shatteredQuad);
+        QuadList.Add(shatteredQuad);
 
         antiVertices.Add(Sidevertex);
         antiVertices.Add(Oppvertex);
@@ -2440,9 +2353,7 @@ public class Cubil_Painter : MonoBehaviour
                    // QuadList[i].quadColor = Color.white;
                 }
             }
-
         }    
-
         return status;
     }
 
@@ -2471,7 +2382,6 @@ public class Cubil_Painter : MonoBehaviour
                         { indexRight.Add(j);}
 
                         status = true;
-
                     }
                     else
                     {
@@ -2496,74 +2406,17 @@ public class Cubil_Painter : MonoBehaviour
         return status;
     }
 
-   // bool InverseIntersectingVertices(Quad left, Quad right)
-   // {
-   //     bool status = false;
-   //
-   //     indexLeft.Clear();
-   //     indexRight.Clear();
-   //
-   //     if (left == right)
-   //         return false;
-   //
-   //     for (int i = left.vertexPoints.Length - 1; i > 0; i--)
-   //     {
-   //         for (int j = right.vertexPoints.Length - 1; j > 0; j--)
-   //         {
-   //             if (left.vertexPoints[i] == right.vertexPoints[j])
-   //             {
-   //                 if (!intersectingVertices.Contains(left.vertexPoints[i])) { intersectingVertices.Add(left.vertexPoints[i]); }
-   //                 if (!intersectingVertices.Contains(right.vertexPoints[j])) { intersectingVertices.Add(right.vertexPoints[j]); }
-   //
-   //                 //if(!indexLeft.Contains(i))
-   //                 { indexLeft.Add(i); }
-   //                 //if (!indexRight.Contains(j))
-   //                 { indexRight.Add(j); }
-   //
-   //                 status = true;
-   //
-   //             }
-   //             else
-   //             {
-   //                 //left.quadColor = left.quadColor;
-   //             }
-   //         }
-   //     }
-   //
-   //     if (indexLeft.Count > 2)
-   //     {
-   //         Debug.Log("there are 2 or more Quads");
-   //     }
-   //
-   //     if (indexLeft.Count < 2)
-   //     { status = false; }
-   //
-   //     if (indexRight.Count > 2)
-   //     { Debug.Log("Right Indices Are Max"); }//status = false; }
-   //
-   //     intersectingVertices.Clear();
-   //
-   //     return status;
-   // }
 
     void CreateNewQuad(Vector3 sp)
     {
         Quad newQuad = new Quad(sp, new Vector3(0, 0, -1));
         newQuad.quadColor = QuadColor;
-        QuadList.Add(newQuad);
 
-       // if(CronenbergList.Count != 0)
-       // {
-       //     if (!CheckCronenContainsBergsForInterSection(newQuad))
-       //     {
-       //         //Debug.Log("There Wasnt Quad Intersection");
-       //        // CronenbergList.Add(new CronenbergQuad(newQuad));
-       //     }
-       // }
-       // else
-       // {
-       //     //CronenbergList.Add(new CronenbergQuad(newQuad));
-       // }
+        newQuad.CalculateQuadArea();
+        newQuad.CalculateCentre();
+        newQuad.CalculateCentrePoints();
+
+        QuadList.Add(newQuad);
     }
 
     void CleanUpQuads()
@@ -2595,9 +2448,12 @@ public class Cubil_Painter : MonoBehaviour
 
                             QuadList.Remove(currentQuad);
                             QuadList.Remove(nextQuad);
-                            QuadList.Add(MergedQuad);
 
-                            //CheckAndIniatiateChainCheckBergs(currentQuad, nextQuad, MergedQuad);
+                            MergedQuad.CalculateQuadArea();
+                            MergedQuad.CalculateCentrePoints();
+                            MergedQuad.CalculateCentre();
+
+                            QuadList.Add(MergedQuad);
 
                             break;
                         }
@@ -2636,77 +2492,77 @@ public class Cubil_Painter : MonoBehaviour
 
     public void CalculateConvexInformation()
     {
-        if (QuadList.Count <= 1)
-        {
-            SetConvexQuad();
-        }
-        else
-        {
-            EvalauteConvexQuad();
-        }
-    }
+       // if (QuadList.Count <= 1)
+       // {
+       //     SetConvexQuad();
+       // }
+       // else
+       // {
+       //     EvalauteConvexQuad();
+       // }
+    }  //
 
     public void SetConvexQuad()
     {
-        ConvexQuad = new Quad();
-        QuadList[0].vertexPoints.CopyTo(ConvexQuad.vertexPoints, 0);
-        ConvexQuad.quadColor = Color.white;
+        //ConvexQuad = new Quad();
+        //QuadList[0].vertexPoints.CopyTo(ConvexQuad.vertexPoints, 0);
+        //ConvexQuad.quadColor = Color.white;
     }
 
     public void EvalauteConvexQuad()
     {
-        float leftx = ConvexQuad.vertexPoints[0].vertice.x;
-        float rightx = ConvexQuad.vertexPoints[3].vertice.x;
-        float topy = ConvexQuad.vertexPoints[2].vertice.y;
-        float bottomy = ConvexQuad.vertexPoints[1].vertice.y;
-
-        for (int i = 0; i < QuadList.Count; i++)
-        {
-            for (int j = 0; j < QuadList[i].vertexPoints.Length; j++)
-            {
-                Vertex vertPoint = QuadList[i].vertexPoints[j];
-
-                if (vertPoint.vertice.x < leftx)
-                {
-                    leftx = vertPoint.vertice.x;
-                }
-
-                if (vertPoint.vertice.x > rightx)
-                {
-                    rightx = vertPoint.vertice.x;
-                }
-
-                if (vertPoint.vertice.y > topy)
-                {
-                    topy = vertPoint.vertice.y;
-                }
-
-                if (vertPoint.vertice.y < bottomy)
-                {
-                    bottomy = vertPoint.vertice.y;
-                }
-            }
-        }
-
-        Vector3 norm = QuadList[0].vertexPoints[0].normal;
-        Vector3 centre = QuadList[0].vertexPoints[0].centre;
-
-        float z = QuadList[0].vertexPoints[0].vertice.z;
-
-        Vertex vert0 = new Vertex(new Vector3(leftx, bottomy, z), norm, centre);
-        Vertex vert1 = new Vertex(new Vector3(rightx, bottomy, z), norm, centre);
-        Vertex vert2 = new Vertex(new Vector3(leftx, topy, z), norm, centre);
-        Vertex vert3 = new Vertex(new Vector3(rightx, topy, z), norm, centre);
-
-        ConvexQuad.vertexPoints[0] = vert0;
-
-        ConvexQuad.vertexPoints[1] = vert1;
-
-        ConvexQuad.vertexPoints[2] = vert2;
-
-        ConvexQuad.vertexPoints[3] = vert3;
-
-        ConvexQuad.CalculateQuadArea();
+       // float leftx = ConvexQuad.vertexPoints[0].vertice.x;
+       // float rightx = ConvexQuad.vertexPoints[3].vertice.x;
+       // float topy = ConvexQuad.vertexPoints[2].vertice.y;
+       // float bottomy = ConvexQuad.vertexPoints[1].vertice.y;
+       //
+       // for (int i = 0; i < QuadList.Count; i++)
+       // {
+       //     for (int j = 0; j < QuadList[i].vertexPoints.Length; j++)
+       //     {
+       //         Vertex vertPoint = QuadList[i].vertexPoints[j];
+       //
+       //         if (vertPoint.vertice.x < leftx)
+       //         {
+       //             leftx = vertPoint.vertice.x;
+       //         }
+       //
+       //         if (vertPoint.vertice.x > rightx)
+       //         {
+       //             rightx = vertPoint.vertice.x;
+       //         }
+       //
+       //         if (vertPoint.vertice.y > topy)
+       //         {
+       //             topy = vertPoint.vertice.y;
+       //         }
+       //
+       //         if (vertPoint.vertice.y < bottomy)
+       //         {
+       //             bottomy = vertPoint.vertice.y;
+       //         }
+       //     }
+       // }
+       //
+       // Vector3 norm = QuadList[0].vertexPoints[0].normal;
+       // Vector3 centre = QuadList[0].vertexPoints[0].centre;
+       //
+       // float z = QuadList[0].vertexPoints[0].vertice.z;
+       //
+       // Vertex vert0 = new Vertex(new Vector3(leftx, bottomy, z), norm, centre);
+       // Vertex vert1 = new Vertex(new Vector3(rightx, bottomy, z), norm, centre);
+       // Vertex vert2 = new Vertex(new Vector3(leftx, topy, z), norm, centre);
+       // Vertex vert3 = new Vertex(new Vector3(rightx, topy, z), norm, centre);
+       //
+       // ConvexQuad.vertexPoints[0] = vert0;
+       //
+       // ConvexQuad.vertexPoints[1] = vert1;
+       //
+       // ConvexQuad.vertexPoints[2] = vert2;
+       //
+       // ConvexQuad.vertexPoints[3] = vert3;
+       //
+       // ConvexQuad.CalculateQuadArea();
     }
 
     void CreateMesh()

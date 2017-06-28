@@ -119,12 +119,13 @@ public class Quad
 
     public void CalculateCentrePoints()
     {
-        if (area > 1)
-        {
-            centrePoints = new List<Vector3>(new Vector3[(int)area]);
-            float width = Mathf.RoundToInt( vertexPoints[1].vertice.x - vertexPoints[0].vertice.x);
+            CalculateQuadArea();
+            centrePoints = new List<Vector3>(new Vector3[area]);
+            float width = Mathf.RoundToInt(vertexPoints[1].vertice.x - vertexPoints[0].vertice.x);
             float height = Mathf.RoundToInt(vertexPoints[2].vertice.y - vertexPoints[0].vertice.y);
 
+        if (centrePoints.Count != 0)
+        {
             for (int i = 0; i < (int)width; i++)
             {
                 for (int j = 0; j < (int)height; j++)
