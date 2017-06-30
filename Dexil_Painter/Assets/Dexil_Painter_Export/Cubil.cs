@@ -119,13 +119,21 @@ public class Quad
 
     public void CalculateCentrePoints()
     {
-            CalculateQuadArea();
-            centrePoints = new List<Vector3>(new Vector3[area]);
-            float width = Mathf.RoundToInt(vertexPoints[1].vertice.x - vertexPoints[0].vertice.x);
-            float height = Mathf.RoundToInt(vertexPoints[2].vertice.y - vertexPoints[0].vertice.y);
+        CalculateQuadArea();
+        centrePoints = new List<Vector3>(new Vector3[area]);
 
         if (centrePoints.Count != 0)
         {
+            float width = Mathf.Abs((vertexPoints[1].vertice.x - vertexPoints[0].vertice.x));
+            float height = Mathf.Abs((vertexPoints[3].vertice.y - vertexPoints[1].vertice.y));
+
+           //Debug.Log("Width " + width);
+           //Debug.Log("Height " + height);
+
+           //if(width == .5 || width == 0)
+           //    width = 1;
+           //
+
             for (int i = 0; i < (int)width; i++)
             {
                 for (int j = 0; j < (int)height; j++)
@@ -182,7 +190,7 @@ public Quad (Vector3 _c, Vector3 _dir)
     public void CalculateQuadArea()
     {
         area = (int)(Mathf.Abs(vertexPoints[0].vertice.x - vertexPoints[1].vertice.x) *
-                    Mathf.Abs(vertexPoints[0].vertice.y - vertexPoints[2].vertice.y));
+                     Mathf.Abs(vertexPoints[0].vertice.y - vertexPoints[2].vertice.y));
     }
 
     public void DrawQuad(float size)
@@ -263,7 +271,8 @@ public Quad (Vector3 _c, Vector3 _dir)
         }
 
         newQuad.CalculateQuadArea();
-
+        newQuad.CalculateCentrePoints();
+        newQuad.CalculateCentre();
         return newQuad;
     }
 
