@@ -22,22 +22,24 @@ public class Cubil_Painter : MonoBehaviour
     List<Vertex> segmentIntersectionLeftVertices = new List<Vertex>();
     List<Vertex> segmentIntersectionBottomVertices = new List<Vertex>();
     List<Vertex> segmentIntersectionTopVertices = new List<Vertex>();
-        
-    List<CronenbergQuad> intersectingCronens = new List<CronenbergQuad>();
 
     List<int> indexLeft = new List<int>();
     List<int> indexRight = new List<int>();
 
     Vector3[,] Grid;
     Vector3 m_Input;
-    bool x, pointInCube, UPDATE;
+    bool pointInCube, UPDATE;
    
     public bool ColorRegions, DEBUG;
-    public List<CronenbergQuad> CronenbergList = new List<CronenbergQuad>();
+
     public List<Quad> QuadList = new List<Quad>();
+
     public float TotalArea;
+
+    [Range(0, 10)]
     public int iterations;
-    public Color[] cronenColors, customColors; //Color Debugging Information
+
+    public Color[] customColors;
     public Color GridColor, EditorCubeColor, DebugCubilMergeColor, QuadColor;
 
 
@@ -68,6 +70,9 @@ public class Cubil_Painter : MonoBehaviour
     {
         if (QuadList.Count != 0)
         {
+
+            QuadList = QuadList.OrderByDescending(o => o.area).ToList();
+
             for (int i = 0; i < QuadList.Count; i++)
             {
                 BigBoy = QuadList[i]; //if sorted right this should be the largest Area
@@ -189,19 +194,19 @@ public class Cubil_Painter : MonoBehaviour
         if (horizontal > vertical) 
         {
            if (BBQuadRight.area != 0)
-           RightQuadAssimulate(Left + Right + BigBoy.area);
+           RightQuadAssimulate(horizontal);
            
            if (BBQuadLeft.area != 0)
-           LeftQuadAssimulate(Left + Right + BigBoy.area);
+           LeftQuadAssimulate(horizontal);
         }
 
          if(horizontal < vertical)
         {
             if (BBQuadTop.area != 0)
-               TopQuadAssimulate(Top + Bottom + BigBoy.area);
+               TopQuadAssimulate(vertical);
 
             if (BBQuadBottom.area != 0)
-               BottomQuadAssimulate(Bottom + Top + BigBoy.area);
+               BottomQuadAssimulate(vertical);
         }
 
     }
@@ -1113,6 +1118,7 @@ public class Cubil_Painter : MonoBehaviour
                     return;
             }
         }
+        
 
         //Check the conditions of the quads
 
@@ -2082,11 +2088,17 @@ public class Cubil_Painter : MonoBehaviour
 
         QuadCalculateCentre();
 
-        CleanUpQuads(); //Last CleanUp
-        BigBoyAssimulation();  //Second Cleanup  
-
         if (UPDATE)
-        CreateMesh();
+        {
+            CreateMesh();
+
+            CleanUpQuads(); //Last CleanUp
+
+            for (int i = 0; i < iterations; i++)
+                BigBoyAssimulation();  //Second Cleanup 
+
+            UPDATE = false;
+        }
 
         if (QuadList.Count != 0)
         {
@@ -2620,15 +2632,6 @@ public class Cubil_Painter : MonoBehaviour
                 {
                     QuadList[i].DrawQuad(.1f);
                    // Gizmos.DrawSphere(QuadList[i].centre, 0.1f);
-                }
-            }
-
-            if (CronenbergList.Count != 0)
-            {
-                for (int i = 0; i < CronenbergList.Count; i++)
-                {
-                    //CronenbergList[i].DrawEdgeVertices(cronenColors);
-                    //CronenbergList[i].DrawConvexQuad();
                 }
             }
 
