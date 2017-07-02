@@ -12,7 +12,9 @@ public class Cubil_Painter : MonoBehaviour
     public int Resolution = 0;
 
     public static Mesh CubilMesh;
-    public static GameObject Cubil; 
+    public static GameObject Cubil;
+
+    public Cubil selectionCube;
 
     Vector3[,] Grid;
 
@@ -26,16 +28,58 @@ public class Cubil_Painter : MonoBehaviour
 
     public Color GridColor, EditorCubeColor, DebugCubilMergeColor, QuadColor;
 
+    public Cubil_Face_Manager[] faceManagers = new Cubil_Face_Manager[6];
+
     void Awake()
     {
-        CubilMesh = new Mesh();
+        selectionCube = new Cubil(new Vector3(0,0,0));
+       
         CreateGrid(25, 25);
+
+        CubilMesh = new Mesh();
         Cubil = FindObjectOfType<MeshFilter>().gameObject;
+
+        InitializeManagers();
+    }
+
+    void InitializeManagers()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            faceManagers[i] = new Cubil_Face_Manager();
+        }
+
+        faceManagers[0].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,0,+1), Direction.FRONT , Color.blue);
+        faceManagers[1].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,0,-1), Direction.BACK  , Color.blue);
+
+        //faceManagers[2].FaceManagerAwake(CubilMesh, Cubil, new Vector3(-1,0,0), Direction.LEFT  , Color.red);
+        //faceManagers[3].FaceManagerAwake(CubilMesh, Cubil, new Vector3(+1,0,0), Direction.RIGHT , Color.red);
+        //
+        //faceManagers[4].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,+1,0), Direction.TOP   , Color.green);
+        //faceManagers[5].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,-1,0), Direction.BOTTOM, Color.green);
+
+    }
+
+    void PaintCubeFaces()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            faceManagers[i].FaceConstruction();
+        }
+    }
+
+    void DrawCubeFaces()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            faceManagers[i].FaceDrawGizmos();
+        }
     }
 
     void Update()
     {
         UserInput();
+        PaintCubeFaces();
     }
 
     Vector3 ManageMouseInput()
@@ -63,10 +107,55 @@ public class Cubil_Painter : MonoBehaviour
 
         if (pointInCube)
         {
-           // SelectedQuad.SetQuad(sp);
+           // selectionCube.SetCube(sp);
+            PaintCubeFaces();
         }
     }
-   
+
+   //void CreateMesh()
+   //{
+   //
+   //
+   //    CubilMesh = new Mesh();
+   //
+   //    Vector3[] MeshNorms = new Vector3[QuadList.Count * 4];
+   //    Vector3[] MeshVerts = new Vector3[QuadList.Count * 4];
+   //    int[] meshTris = new int[QuadList.Count * 6];
+   //    Vector2[] uvs = new Vector2[17 * 17];
+   //
+   //    //Normals and Verts UnPacking
+   //    for (int i = 0; i < QuadList.Count; i++)
+   //    {
+   //        uvs[i] = new Vector2(i / (float)16, i / (float)16);
+   //
+   //        MeshVerts[(i * 4) + 0] = QuadList[i].vertexPoints[0].vertice;
+   //        MeshVerts[(i * 4) + 1] = QuadList[i].vertexPoints[1].vertice;
+   //        MeshVerts[(i * 4) + 2] = QuadList[i].vertexPoints[2].vertice;
+   //        MeshVerts[(i * 4) + 3] = QuadList[i].vertexPoints[3].vertice;
+   //
+   //        MeshNorms[(i * 4) + 0] = QuadList[i].vertexPoints[0].normal;
+   //        MeshNorms[(i * 4) + 1] = QuadList[i].vertexPoints[1].normal;
+   //        MeshNorms[(i * 4) + 2] = QuadList[i].vertexPoints[2].normal;
+   //        MeshNorms[(i * 4) + 3] = QuadList[i].vertexPoints[3].normal;
+   //
+   //        meshTris[(i * 6) + 0] = QuadList[i].t1.indexArray[0] + (i * 4);
+   //        meshTris[(i * 6) + 1] = QuadList[i].t1.indexArray[1] + (i * 4);
+   //        meshTris[(i * 6) + 2] = QuadList[i].t1.indexArray[2] + (i * 4);
+   //
+   //        meshTris[(i * 6) + 3] = QuadList[i].t2.indexArray[0] + (i * 4);
+   //        meshTris[(i * 6) + 4] = QuadList[i].t2.indexArray[1] + (i * 4);
+   //        meshTris[(i * 6) + 5] = QuadList[i].t2.indexArray[2] + (i * 4);
+   //    }
+   //
+   //    CubilMesh.vertices = MeshVerts;
+   //    CubilMesh.normals = MeshNorms;
+   //    CubilMesh.triangles = meshTris;
+   //
+   //    Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
+   //
+   //}
+
+
     #region Debugging
     void CreateGrid(int _x, int _z)
     {
@@ -86,10 +175,12 @@ public class Cubil_Painter : MonoBehaviour
     {
         if(Application.isPlaying && DEBUG)
         {
+            DrawCubeFaces();          
             //Vector3 intersection = transform.position + (ray.direction * rayLength);
             //Gizmos.DrawSphere(intersection, .25f);
 
             //Debug.Log(sp2);
+            selectionCube.DrawCubil(0.1f);
 
             DrawGrid();
             DrawEditorCube();
@@ -114,6 +205,8 @@ public class Cubil_Painter : MonoBehaviour
             }
         }
     }
+
+
 
     void DrawEditorCube()
     {

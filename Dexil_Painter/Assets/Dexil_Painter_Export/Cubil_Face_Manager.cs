@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-public class Cubil_Face : MonoBehaviour
+[Serializable]
+public class Cubil_Face_Manager
 {
     Mesh CubilMesh;
     GameObject Cubil;
@@ -25,7 +26,7 @@ public class Cubil_Face : MonoBehaviour
 
     bool UPDATE;
    
-    public bool ColorRegions, DEBUG;
+    public bool ColorRegions, DEBUG, DEBUGBIGBOY;
 
     public Color QuadFaceColor;
 
@@ -34,7 +35,7 @@ public class Cubil_Face : MonoBehaviour
     public float TotalArea;
 
     [Range(0, 10)]
-    public int iterations;
+    public int iterations = 2;
 
     public Color[] customColors;
 
@@ -50,12 +51,19 @@ public class Cubil_Face : MonoBehaviour
 
     public Direction FaceDirection;
 
-    void Awake()
+    public Vector3 normalDirection;
+
+    public void FaceManagerAwake(Mesh cubilMesh, GameObject cubeObject, Vector3 _normalDir, Direction _faceDirection, Color _faceColor)
     {
-        ConvexQuad = new Quad();
-        SelectedQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0), FaceDirection);
-        CubilMesh = new Mesh();
-        Cubil = FindObjectOfType<MeshFilter>().gameObject;
+        QuadFaceColor = _faceColor;
+        FaceDirection = _faceDirection;
+
+        SelectedQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0), FaceDirection, Color.white);
+
+        normalDirection = _normalDir;
+
+        CubilMesh = cubilMesh;
+        Cubil = cubeObject;
     }
 
     void Update()
@@ -87,7 +95,6 @@ public class Cubil_Face : MonoBehaviour
 
     void CheckBigBoySides(Quad BigBoy)
     {
-
         BigBoyBottomLeft      = null;
         BigBoyBottomRight     = null;
 
@@ -105,19 +112,52 @@ public class Cubil_Face : MonoBehaviour
         segmentIntersectionBottomVertices = new List<Vertex>();
         segmentIntersectionTopVertices = new List<Vertex>();
 
-        BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0,0,1), BigBoy.centre);
-        BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
 
-        BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-        BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        if (FaceDirection == Direction.FRONT || FaceDirection == Direction.BACK)
+        {
+            BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
 
-        BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-        BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
 
-        BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-        BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
 
-        if (QuadList.Count != 0)
+            BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        }
+        else if(FaceDirection == Direction.TOP || FaceDirection == Direction.BOTTOM)
+        {
+            BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+            BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+            BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+            BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        }
+        else if (FaceDirection == Direction.LEFT || FaceDirection == Direction.RIGHT)
+        {
+            BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+            BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+            BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+
+            BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+            BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        }
+
+
+            if (QuadList.Count != 0)
         {
             for (int i = 0; i < QuadList.Count; i++)
             {
@@ -334,7 +374,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Top Quad 
-                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad topQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
@@ -346,7 +386,7 @@ public class Cubil_Face : MonoBehaviour
                     topQuad.CalculateCentrePoints();
 
                     //Bottom Quad
-                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad bottomQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -626,7 +666,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Top Quad 
-                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad topQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
@@ -638,7 +678,7 @@ public class Cubil_Face : MonoBehaviour
                     topQuad.CalculateCentrePoints();
 
                     //Bottom Quad
-                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad bottomQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -918,7 +958,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Top Quad 
-                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad leftQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -930,7 +970,7 @@ public class Cubil_Face : MonoBehaviour
                     leftQuad.CalculateCentrePoints();
 
                     //Bottom Quad
-                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad rightQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadTop.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
@@ -1205,7 +1245,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Left Quad 
-                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad leftQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -1217,7 +1257,7 @@ public class Cubil_Face : MonoBehaviour
                     leftQuad.CalculateCentrePoints();
 
                     //Right Quad
-                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
+                    Quad rightQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
                     rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadBottom.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
@@ -1828,7 +1868,7 @@ public class Cubil_Face : MonoBehaviour
             Vertex v2 = new Vertex(new Vector3(sX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
             Vertex v3 = new Vertex(new Vector3(gX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
 
-            Quad caneryQuad = new Quad(bigBoy.centre, new Vector3(0, 1, 0), FaceDirection);
+            Quad caneryQuad = Quad.create(bigBoy.centre, normalDirection, FaceDirection, QuadFaceColor);
 
             caneryQuad.quadColor = col;
 
@@ -2036,7 +2076,7 @@ public class Cubil_Face : MonoBehaviour
         //ColorCronenCells();
     }
     
-    void FaceConstruction()
+    public void FaceConstruction()
     {
         Vector3 sp = Cubil_Painter.sp; //ManageMouseInput();
 
@@ -2069,7 +2109,7 @@ public class Cubil_Face : MonoBehaviour
 
         if (UPDATE)
         {
-            CreateMesh();
+            //CreateMesh();
 
             CleanUpQuads(); //Last CleanUp
 
@@ -2078,15 +2118,6 @@ public class Cubil_Face : MonoBehaviour
 
             UPDATE = false;
         }
-
-        if (QuadList.Count != 0)
-        {
-            for (int i = 0; i < QuadList.Count; i++)
-            {
-                QuadList[i].quadColor = Color.white;
-            }
-        }
-
         
     }
 
@@ -2106,7 +2137,7 @@ public class Cubil_Face : MonoBehaviour
     // ------------------------------------------------ Removing Quads -----------------------------------------------------------------
     void FractureQuads(Vector3 sp)
     {
-        Quad newAntiQuad = new Quad(sp, new Vector3(0, 0, -1), FaceDirection);
+        Quad newAntiQuad = Quad.create(sp, normalDirection, FaceDirection, QuadFaceColor);
 
         newAntiQuad.quadColor = Color.black;
 
@@ -2131,10 +2162,7 @@ public class Cubil_Face : MonoBehaviour
         antiQuadList.Clear();
 
         QuadList.Remove(intesectingQuad);
-        //CheckAndManageBrokenCronenBergs(intesectingQuad, intesectingQuad);
         intesectingQuad = null;
-
-       // EvalauteCronens();
     }
 
     void CreateOpposingFractures(Quad innerQuad)
@@ -2155,73 +2183,12 @@ public class Cubil_Face : MonoBehaviour
         Vertex sideVert3 = GetSideVertex(innerQuad.vertexPoints[3], 3);
         Vertex oppVert3 = GetOppVertex(innerQuad.vertexPoints[3], 3);
 
-        if (Mathf.Abs(vert0.vertice.y - oppVert0.vertice.y) > 0 || Mathf.Abs(vert1.vertice.y - oppVert1.vertice.y) > 0)
-        {
-            Quad opp0 = new Quad(innerQuad.centre, innerQuad.vertexPoints[0].normal, FaceDirection);
-            opp0.vertexPoints[0] = new Vertex(oppVert0.vertice, oppVert0.normal, oppVert0.centre);
-            opp0.vertexPoints[1] = new Vertex(oppVert1.vertice, oppVert1.normal, oppVert1.centre);
-            opp0.vertexPoints[2] = new Vertex(vert0.vertice, vert0.normal, vert0.centre);
-            opp0.vertexPoints[3] = new Vertex(vert1.vertice, vert1.normal, vert1.centre);
-
-            opp0.CalculateQuadArea();
-            opp0.CalculateCentre();
-            opp0.CalculateCentrePoints();
-
-            //opp0.quadColor = customColors[0];
-            QuadList.Add(opp0);
-            //CheckAndManageBrokenCronenBergs(intesectingQuad, opp0);
-        }
-
-        if (Mathf.Abs(vert1.vertice.x - sideVert1.vertice.x) > 0 || Mathf.Abs(vert3.vertice.x - sideVert3.vertice.x) > 0)
-        {
-            Quad side0 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal, FaceDirection);
-            side0.vertexPoints[0] = new Vertex(vert1.vertice, vert1.normal, vert1.centre);
-            side0.vertexPoints[1] = new Vertex(sideVert1.vertice, sideVert1.normal, sideVert1.centre);
-            side0.vertexPoints[2] = new Vertex(vert3.vertice, vert3.normal, vert3.centre);
-            side0.vertexPoints[3] = new Vertex(sideVert3.vertice, sideVert3.normal, sideVert3.centre);
-
-            side0.CalculateQuadArea();
-            side0.CalculateCentre();
-            side0.CalculateCentrePoints();
-
-            //side0.quadColor = customColors[1];
-            QuadList.Add(side0);
-            //CheckAndManageBrokenCronenBergs(intesectingQuad, side0);
-        }
-
-        if (Mathf.Abs(vert2.vertice.y - oppVert2.vertice.y) > 0 || Mathf.Abs(vert3.vertice.y - oppVert3.vertice.y) > 0)
-        {
-            Quad opp1 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal, FaceDirection);
-            opp1.vertexPoints[0] = new Vertex(vert2.vertice, vert2.normal, vert2.centre);
-            opp1.vertexPoints[1] = new Vertex(vert3.vertice, vert3.normal, vert3.centre);
-            opp1.vertexPoints[2] = new Vertex(oppVert2.vertice, oppVert2.normal, oppVert2.centre);
-            opp1.vertexPoints[3] = new Vertex(oppVert3.vertice, oppVert3.normal, oppVert3.centre);
-
-            opp1.CalculateQuadArea();
-            opp1.CalculateCentre();
-            opp1.CalculateCentrePoints();
-
-            // opp1.quadColor = customColors[2];
-            QuadList.Add(opp1);
-            //CheckAndManageBrokenCronenBergs(intesectingQuad, opp1);
-        }
-
-        if (Mathf.Abs(sideVert0.vertice.x - vert0.vertice.x) > 0 || Mathf.Abs(sideVert2.vertice.x - vert2.vertice.x) > 0)
-        {
-            Quad side1 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal, FaceDirection);
-            side1.vertexPoints[0] = new Vertex(sideVert0.vertice, sideVert0.normal, sideVert0.centre);
-            side1.vertexPoints[1] = new Vertex(vert0.vertice, vert0.normal, vert0.centre);
-            side1.vertexPoints[2] = new Vertex(sideVert2.vertice, sideVert2.normal, sideVert2.centre);
-            side1.vertexPoints[3] = new Vertex(vert2.vertice, vert2.normal, vert2.centre);
-
-            side1.CalculateQuadArea();
-            side1.CalculateCentre();
-            side1.CalculateCentrePoints();
-
-            //side1.quadColor = customColors[3];
-            QuadList.Add(side1);
-            //CheckAndManageBrokenCronenBergs(intesectingQuad, side1);
-        }
+        //Moving method to Helper Struct to sort diffrence Face Orentations
+        Cubil_Face_Manager_Helper.CreateOpposingFracturesHelp(QuadList, normalDirection, FaceDirection, innerQuad, QuadFaceColor,
+            vert0, sideVert0, oppVert0,
+            vert1, sideVert1, oppVert1,
+            vert2, sideVert2, oppVert2,
+            vert3, sideVert3, oppVert3);
     }
 
     Vertex GetSideVertex(Vertex _innerVertex, int index)
@@ -2256,7 +2223,7 @@ public class Cubil_Face : MonoBehaviour
 
         if (Mathf.Abs((_innerVertex.vertice.y - Oppvertex.vertice.y)) == 0) { return; }
 
-        Quad shatteredQuad = new Quad(intesectingQuad.centre, intesectingQuad.vertexPoints[0].normal, FaceDirection);
+        Quad shatteredQuad = Quad.create(intesectingQuad.centre, normalDirection, FaceDirection, QuadFaceColor);
 
         shatteredQuad.vertexPoints[flipindex] = _innerVertex;
         shatteredQuad.vertexPoints[index] = intesectingQuad.vertexPoints[index];
@@ -2371,7 +2338,7 @@ public class Cubil_Face : MonoBehaviour
 
     void CreateNewQuad(Vector3 sp)
     {
-        Quad newQuad = new Quad(sp, new Vector3(0, 0, -1), FaceDirection);
+        Quad newQuad = Quad.create(sp, normalDirection, FaceDirection, QuadFaceColor);
         newQuad.quadColor = QuadFaceColor;
 
         newQuad.CalculateQuadArea();
@@ -2411,7 +2378,7 @@ public class Cubil_Face : MonoBehaviour
                             if (currentQuad.quadColor == Color.white)
                                 currentQuad.quadColor = nextQuad.quadColor;
 
-                            Quad MergedQuad = currentQuad.MergeQuads(nextQuad, indexLeft.ToArray(), currentQuad.quadColor);
+                            Quad MergedQuad = currentQuad.MergeQuads(nextQuad, indexLeft.ToArray(), QuadFaceColor);
 
                             QuadList.Remove(currentQuad);
                             QuadList.Remove(nextQuad);
@@ -2424,7 +2391,7 @@ public class Cubil_Face : MonoBehaviour
                 }
             }
     
-        CreateMesh();
+        //CreateMesh();
     }
 
     public void CalculateTotalQuadArea()
@@ -2570,9 +2537,9 @@ public class Cubil_Face : MonoBehaviour
 
     #region Debugging
 
-    void OnDrawGizmos()
+    public void FaceDrawGizmos()
     {
-        if(Application.isPlaying && DEBUG)
+        if(Application.isPlaying)
         {
             //Vector3 intersection = transform.position + (ray.direction * rayLength);
             //Gizmos.DrawSphere(intersection, .25f);
@@ -2580,7 +2547,7 @@ public class Cubil_Face : MonoBehaviour
             //Debug.Log(sp2);
 
             SelectedQuad.DrawQuad(.1f);
-            ConvexQuad.DrawQuad(.1f);
+            //ConvexQuad.DrawQuad(.1f);
 
             for (int i = 0; i < antiVertices.Count; i ++)
             {
@@ -2608,6 +2575,15 @@ public class Cubil_Face : MonoBehaviour
             }
             //for (int i = 0; i < antiQuadList.Count; i++)
             //    antiQuadList[i].DrawQuad(.1f);
+
+            DrawBigBoyDebug();
+        }
+    }
+
+    void DrawBigBoyDebug()
+    {
+        if (DEBUGBIGBOY)
+        {
             Gizmos.color = Color.red;
 
             if (BigBoy != null) { Gizmos.DrawSphere(BigBoy.centre, 0.2f); }
@@ -2615,17 +2591,17 @@ public class Cubil_Face : MonoBehaviour
             Gizmos.color = Color.cyan;
             // Gizmos.DrawSphere(new Vector3(8f, 8f, 8f), 1f);
 
-           if(BigBoyBottomLeft != null)        Gizmos.DrawLine(BigBoyBottomLeft.vertice, BigBoy.vertexPoints[0].vertice);
-           if(BigBoyBottomRight != null)       Gizmos.DrawLine(BigBoyBottomRight.vertice, BigBoy.vertexPoints[1].vertice);
-                                               
-           if (BigBoyRightSideBottom != null)  Gizmos.DrawLine(BigBoyRightSideBottom.vertice, BigBoy.vertexPoints[1].vertice);
-           if (BigBoyRightSideTop != null)     Gizmos.DrawLine(BigBoyRightSideTop.vertice, BigBoy.vertexPoints[3].vertice);
-                                               
-           if (BigBoyLeftSideBottom != null)   Gizmos.DrawLine(BigBoyLeftSideBottom.vertice, BigBoy.vertexPoints[0].vertice);
-           if (BigBoyLeftSideTop != null)      Gizmos.DrawLine(BigBoyLeftSideTop.vertice, BigBoy.vertexPoints[2].vertice);
-                                               
-           if (BigBoyTopLeft != null)          Gizmos.DrawLine(BigBoyTopLeft.vertice, BigBoy.vertexPoints[2].vertice);
-           if (BigBoyTopRight != null)         Gizmos.DrawLine(BigBoyTopRight.vertice, BigBoy.vertexPoints[3].vertice);
+            if (BigBoyBottomLeft != null) Gizmos.DrawLine(BigBoyBottomLeft.vertice, BigBoy.vertexPoints[0].vertice);
+            if (BigBoyBottomRight != null) Gizmos.DrawLine(BigBoyBottomRight.vertice, BigBoy.vertexPoints[1].vertice);
+
+            if (BigBoyRightSideBottom != null) Gizmos.DrawLine(BigBoyRightSideBottom.vertice, BigBoy.vertexPoints[1].vertice);
+            if (BigBoyRightSideTop != null) Gizmos.DrawLine(BigBoyRightSideTop.vertice, BigBoy.vertexPoints[3].vertice);
+
+            if (BigBoyLeftSideBottom != null) Gizmos.DrawLine(BigBoyLeftSideBottom.vertice, BigBoy.vertexPoints[0].vertice);
+            if (BigBoyLeftSideTop != null) Gizmos.DrawLine(BigBoyLeftSideTop.vertice, BigBoy.vertexPoints[2].vertice);
+
+            if (BigBoyTopLeft != null) Gizmos.DrawLine(BigBoyTopLeft.vertice, BigBoy.vertexPoints[2].vertice);
+            if (BigBoyTopRight != null) Gizmos.DrawLine(BigBoyTopRight.vertice, BigBoy.vertexPoints[3].vertice);
 
 
             Gizmos.color = Color.magenta;
@@ -2663,11 +2639,11 @@ public class Cubil_Face : MonoBehaviour
             }
 
             //Gizmos.color = Color.magenta;
-            if(BBQuadRight != null) BBQuadRight.DrawQuad(.15f);
+            if (BBQuadRight != null) BBQuadRight.DrawQuad(.15f);
 
             if (BBQuadLeft != null) BBQuadLeft.DrawQuad(.15f);
 
-            if (BBQuadTop != null)  BBQuadTop.DrawQuad(.15f);
+            if (BBQuadTop != null) BBQuadTop.DrawQuad(.15f);
             if (BBQuadBottom != null) BBQuadBottom.DrawQuad(.15f);
         }
     }

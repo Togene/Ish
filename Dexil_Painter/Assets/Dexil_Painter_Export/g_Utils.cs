@@ -28,9 +28,24 @@ public static class g_Utils
         return value >= Mathf.Min(min, max) && value <= Mathf.Max(min, max);
     }
 
-    public static bool pointInRect(float x, float y, Vector3 p1, Vector3 p2)
+    public static bool pointInRect(float x, float y, float z, Vector3 p1, Vector3 p2, Direction _dir)
     {
-        return InRange(x, p1.x, p2.x) && InRange(y, p1.y, p2.y);
+        if (_dir == Direction.FRONT || _dir == Direction.BACK)
+        {
+            return InRange(x, p1.x, p2.x) && InRange(y, p1.y, p2.y);
+        }
+        else if (_dir == Direction.LEFT || _dir == Direction.RIGHT)
+        {
+            return InRange(z, p1.z, p2.z) && InRange(y, p1.y, p2.y);
+        }
+        else if (_dir == Direction.TOP || _dir == Direction.BOTTOM)
+        {
+            return InRange(z, p1.z, p2.z) && InRange(x, p1.x, p2.x);
+        }
+        else
+        {
+            return InRange(x, p1.x, p2.x) && InRange(y, p1.y, p2.y);
+        }
     }
 
     public static bool pointInRectExcludeBorder(float x, float y, Vector3 p1, Vector3 p2)
