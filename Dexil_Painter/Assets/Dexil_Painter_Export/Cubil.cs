@@ -3,6 +3,17 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 
+
+public enum Direction
+{
+    FRONT,
+    BACK,
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM
+};
+
 public class Triangle
 {
     public int[] indexArray = new int[3];
@@ -111,7 +122,7 @@ public class Quad
     public Vector3 centre;
     public List<Vector3> centrePoints = new List<Vector3>();
     public List<Vector3> antiPoints = new List<Vector3>();
-
+    public Direction faceDirection;
     public Quad q;
     public int area;
 
@@ -144,11 +155,11 @@ public class Quad
         }
     }
 
-    public static Quad create(Vector3 _c, Vector3 _dir)
+    public static Quad create(Vector3 _c, Vector3 _n, Direction dir)
     {
         Quad obj = new Quad();
-
-        obj.vertexPoints = CreateVerts(_c, _dir);
+        obj.faceDirection = dir;
+        obj.vertexPoints = VertexData.CreateVertices(dir, _c, _n);
         obj.centre = _c;
         obj.CreateTris();
         obj.quadColor = Color.white;
@@ -156,20 +167,14 @@ public class Quad
         return obj;
     }
 
-    public Vertex[] CreateTestVertices(Vector3 c, Vector3 _dir)
-    {
-        return new Vertex[]
-        {
-            new Vertex(new Vector3(-.5f, -.5f, 0.0f) + c, _dir, c), //0
-            new Vertex(new Vector3(+.5f, -.5f, 0.0f) + c, _dir, c), //1
-            new Vertex(new Vector3(-.5f, +.5f, 0.0f) + c, _dir, c), //2
-            new Vertex(new Vector3(+.5f, +.5f, 0.0f) + c, _dir, c)  //3 
-        };
-    }
+    public Vertex[] CreateTestVertices(Vector3 _c, Vector3 _n)
+    {                                                                            //
+        return VertexData.CreateVertices(faceDirection, _c, _n);
+    }                                                                            //
 
-public Quad (Vector3 _c, Vector3 _dir)
+public Quad (Vector3 _c, Vector3 _n, Direction dir)
     {
-       vertexPoints = CreateVerts(_c, _dir);
+       vertexPoints = VertexData.CreateVertices(dir, _c, _n); //CreateVerts(_c, _dir);
        centre = _c;
        CreateTris();
        CalculateQuadArea();
@@ -260,7 +265,7 @@ public Quad (Vector3 _c, Vector3 _dir)
 
     public Quad MergeQuads(Quad right, int[] leftIndices, Color _color)
     {
-        Quad newQuad = create(centre, new Vector3(0, 0, 0)); //new Quad(centre, new Vector3(0, 0, 0));
+        Quad newQuad = create(centre, vertexPoints[0].normal, faceDirection);
 
         newQuad.vertexPoints = vertexPoints;
         newQuad.quadColor = _color;
@@ -353,3 +358,137 @@ public Quad (Vector3 _c, Vector3 _dir)
     }
 }
 
+public class Cubil
+{
+    public Quad[] faces = new Quad[6];
+    public Vector3 centre;
+
+    public Cubil(Vector3 _c)
+    {
+        centre = _c;
+
+        //Creating Front Facing Quad
+        faces[0] = Quad.create(_c, new Vector3(0, 0, -1), Direction.FRONT);
+
+        faces[1] = Quad.create(_c, new Vector3(0, 0, +1), Direction.BACK);
+
+        faces[2] = Quad.create(_c, new Vector3(-1, 0, 0), Direction.LEFT);
+                                                   
+        faces[3] = Quad.create(_c, new Vector3(+1, 0, 0), Direction.RIGHT);
+
+        faces[4] = Quad.create(_c, new Vector3(0, +1, 0), Direction.TOP);
+
+        faces[5] = Quad.create(_c, new Vector3(0, -1, 0), Direction.BOTTOM);
+    }
+
+}
+
+public struct VertexData
+{
+    public static Vertex[] CreateVertices(Direction faceDirection, Vector3 _c, Vector3 _n)
+    {
+        if (faceDirection == Direction.FRONT)
+        {
+            return FrontFaceVertexData(_c, _n);
+        }
+        else if (faceDirection == Direction.BACK)
+        {
+            return FrontFaceVertexData(_c, _n);
+        }
+        else if (faceDirection == Direction.LEFT)
+        {
+            return FrontFaceVertexData(_c, _n);
+        }
+        else if (faceDirection == Direction.RIGHT)
+        {
+            return FrontFaceVertexData(_c, _n);
+        }
+        else if (faceDirection == Direction.TOP)
+        {
+            return FrontFaceVertexData(_c, _n);
+        }
+        else if (faceDirection == Direction.BOTTOM)
+        {
+            return FrontFaceVertexData(_c, _n);
+        }
+        else
+
+        {
+            return new Vertex[]
+            {
+            new Vertex(new Vector3(0, 0, 0.0f),new Vector3(0, 0, 0.0f), new Vector3(0, 0, 0.0f)), //0
+            new Vertex(new Vector3(0, 0, 0.0f),new Vector3(0, 0, 0.0f), new Vector3(0, 0, 0.0f)), //1
+            new Vertex(new Vector3(0, 0, 0.0f),new Vector3(0, 0, 0.0f), new Vector3(0, 0, 0.0f)), //2
+            new Vertex(new Vector3(0, 0, 0.0f),new Vector3(0, 0, 0.0f), new Vector3(0, 0, 0.0f))  //3 
+            };
+        }
+
+    }
+
+
+    private static Vertex[] FrontFaceVertexData(Vector3 _c, Vector3 _n)
+    {
+        return new Vertex[]
+        {
+            new Vertex(new Vector3(-.5f, -.5f, 0.0f) + _c, _n, _c), //0
+            new Vertex(new Vector3(+.5f, -.5f, 0.0f) + _c, _n, _c), //1
+            new Vertex(new Vector3(-.5f, +.5f, 0.0f) + _c, _n, _c), //2
+            new Vertex(new Vector3(+.5f, +.5f, 0.0f) + _c, _n, _c)  //3 
+        };
+    }
+
+    private static Vertex[] BackFaceVertexData(Vector3 _c, Vector3 _n)
+    {
+        return new Vertex[]
+        {
+            new Vertex(new Vector3(-.5f, -.5f, 1.0f) + _c, _n, _c), //0
+            new Vertex(new Vector3(+.5f, -.5f, 1.0f) + _c, _n, _c), //1
+            new Vertex(new Vector3(-.5f, +.5f, 1.0f) + _c, _n, _c), //2
+            new Vertex(new Vector3(+.5f, +.5f, 1.0f) + _c, _n, _c)  //3 
+        };
+    }
+
+    private static Vertex[] LeftFaceVertexData(Vector3 _c, Vector3 _n)
+    {
+        return new Vertex[]
+        {
+            new Vertex(new Vector3(0.0f, -.5f, -.5f) + _c, _n, _c), //0
+            new Vertex(new Vector3(0.0f, -.5f, +.5f) + _c, _n, _c), //1
+            new Vertex(new Vector3(0.0f, +.5f, -.5f) + _c, _n, _c), //2
+            new Vertex(new Vector3(0.0f, +.5f, +.5f) + _c, _n, _c)  //3 
+        };
+    }
+
+    private static Vertex[] RightFaceVertexData(Vector3 _c, Vector3 _n)
+    {
+        return new Vertex[]
+        {
+            new Vertex(new Vector3(1.0f, -.5f, -.5f) + _c, _n, _c), //0
+            new Vertex(new Vector3(1.0f, -.5f, +.5f) + _c, _n, _c), //1
+            new Vertex(new Vector3(1.0f, +.5f, -.5f) + _c, _n, _c), //2
+            new Vertex(new Vector3(1.0f, +.5f, +.5f) + _c, _n, _c)  //3  
+        };
+    }
+
+    private static Vertex[] TopFaceVertexData(Vector3 _c, Vector3 _n)
+    {
+        return new Vertex[]
+        {
+            new Vertex(new Vector3(-.5f, 1.0f, -.5f) + _c, _n, _c), //0
+            new Vertex(new Vector3(+.5f, 1.0f, -.5f) + _c, _n, _c), //1
+            new Vertex(new Vector3(-.5f, 1.0f, +.5f) + _c, _n, _c), //2
+            new Vertex(new Vector3(+.5f, 1.0f, +.5f) + _c, _n, _c)  //3 
+        };
+    }
+
+    private static Vertex[] BottomFaceVertexData(Vector3 _c, Vector3 _n)
+    {
+        return new Vertex[]
+        {
+            new Vertex(new Vector3(-.5f, 0.0f, -.5f) + _c, _n, _c), //0
+            new Vertex(new Vector3(+.5f, 0.0f, -.5f) + _c, _n, _c), //1
+            new Vertex(new Vector3(-.5f, 0.0f, +.5f) + _c, _n, _c), //2
+            new Vertex(new Vector3(+.5f, 0.0f, +.5f) + _c, _n, _c)  //3 
+        };
+    }
+}

@@ -9,11 +9,8 @@ public class Cubil_Face : MonoBehaviour
 {
     Mesh CubilMesh;
     GameObject Cubil;
-
     Quad intesectingQuad, SelectedQuad, ConvexQuad;
-
     public Quad BigBoy;
-
     List<Quad> IntersectingQuadList = new List<Quad>(); List<Quad> antiQuadList = new List<Quad>();
 
     List<Vertex> intersectingVertices = new List<Vertex>();
@@ -51,10 +48,12 @@ public class Cubil_Face : MonoBehaviour
 
     public int area, LargestArea;
 
+    public Direction FaceDirection;
+
     void Awake()
     {
         ConvexQuad = new Quad();
-        SelectedQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
+        SelectedQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0), FaceDirection);
         CubilMesh = new Mesh();
         Cubil = FindObjectOfType<MeshFilter>().gameObject;
     }
@@ -335,7 +334,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Top Quad 
-                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
@@ -347,7 +346,7 @@ public class Cubil_Face : MonoBehaviour
                     topQuad.CalculateCentrePoints();
 
                     //Bottom Quad
-                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -627,7 +626,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Top Quad 
-                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad topQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadLeft.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
@@ -639,7 +638,7 @@ public class Cubil_Face : MonoBehaviour
                     topQuad.CalculateCentrePoints();
 
                     //Bottom Quad
-                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad bottomQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -919,7 +918,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Top Quad 
-                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -931,7 +930,7 @@ public class Cubil_Face : MonoBehaviour
                     leftQuad.CalculateCentrePoints();
 
                     //Bottom Quad
-                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadTop.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
@@ -1206,7 +1205,7 @@ public class Cubil_Face : MonoBehaviour
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Left Quad 
-                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad leftQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -1218,7 +1217,7 @@ public class Cubil_Face : MonoBehaviour
                     leftQuad.CalculateCentrePoints();
 
                     //Right Quad
-                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal);
+                    Quad rightQuad = new Quad(new Vector3(0, 0, 0), quadstoCut[i].vertexPoints[0].normal, FaceDirection);
 
                     rightQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     rightQuad.vertexPoints[1].vertice = new Vector3(BBQuadBottom.vertexPoints[0].vertice.x, quadstoCut[i].vertexPoints[1].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
@@ -1829,7 +1828,7 @@ public class Cubil_Face : MonoBehaviour
             Vertex v2 = new Vertex(new Vector3(sX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
             Vertex v3 = new Vertex(new Vector3(gX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
 
-            Quad caneryQuad = new Quad(bigBoy.centre, new Vector3(0, 1, 0));
+            Quad caneryQuad = new Quad(bigBoy.centre, new Vector3(0, 1, 0), FaceDirection);
 
             caneryQuad.quadColor = col;
 
@@ -2107,7 +2106,7 @@ public class Cubil_Face : MonoBehaviour
     // ------------------------------------------------ Removing Quads -----------------------------------------------------------------
     void FractureQuads(Vector3 sp)
     {
-        Quad newAntiQuad = new Quad(sp, new Vector3(0, 0, -1));
+        Quad newAntiQuad = new Quad(sp, new Vector3(0, 0, -1), FaceDirection);
 
         newAntiQuad.quadColor = Color.black;
 
@@ -2158,7 +2157,7 @@ public class Cubil_Face : MonoBehaviour
 
         if (Mathf.Abs(vert0.vertice.y - oppVert0.vertice.y) > 0 || Mathf.Abs(vert1.vertice.y - oppVert1.vertice.y) > 0)
         {
-            Quad opp0 = new Quad(innerQuad.centre, innerQuad.vertexPoints[0].normal);
+            Quad opp0 = new Quad(innerQuad.centre, innerQuad.vertexPoints[0].normal, FaceDirection);
             opp0.vertexPoints[0] = new Vertex(oppVert0.vertice, oppVert0.normal, oppVert0.centre);
             opp0.vertexPoints[1] = new Vertex(oppVert1.vertice, oppVert1.normal, oppVert1.centre);
             opp0.vertexPoints[2] = new Vertex(vert0.vertice, vert0.normal, vert0.centre);
@@ -2175,7 +2174,7 @@ public class Cubil_Face : MonoBehaviour
 
         if (Mathf.Abs(vert1.vertice.x - sideVert1.vertice.x) > 0 || Mathf.Abs(vert3.vertice.x - sideVert3.vertice.x) > 0)
         {
-            Quad side0 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal);
+            Quad side0 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal, FaceDirection);
             side0.vertexPoints[0] = new Vertex(vert1.vertice, vert1.normal, vert1.centre);
             side0.vertexPoints[1] = new Vertex(sideVert1.vertice, sideVert1.normal, sideVert1.centre);
             side0.vertexPoints[2] = new Vertex(vert3.vertice, vert3.normal, vert3.centre);
@@ -2192,7 +2191,7 @@ public class Cubil_Face : MonoBehaviour
 
         if (Mathf.Abs(vert2.vertice.y - oppVert2.vertice.y) > 0 || Mathf.Abs(vert3.vertice.y - oppVert3.vertice.y) > 0)
         {
-            Quad opp1 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal);
+            Quad opp1 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal, FaceDirection);
             opp1.vertexPoints[0] = new Vertex(vert2.vertice, vert2.normal, vert2.centre);
             opp1.vertexPoints[1] = new Vertex(vert3.vertice, vert3.normal, vert3.centre);
             opp1.vertexPoints[2] = new Vertex(oppVert2.vertice, oppVert2.normal, oppVert2.centre);
@@ -2209,7 +2208,7 @@ public class Cubil_Face : MonoBehaviour
 
         if (Mathf.Abs(sideVert0.vertice.x - vert0.vertice.x) > 0 || Mathf.Abs(sideVert2.vertice.x - vert2.vertice.x) > 0)
         {
-            Quad side1 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal);
+            Quad side1 = new Quad(innerQuad.centre, innerQuad.vertexPoints[1].normal, FaceDirection);
             side1.vertexPoints[0] = new Vertex(sideVert0.vertice, sideVert0.normal, sideVert0.centre);
             side1.vertexPoints[1] = new Vertex(vert0.vertice, vert0.normal, vert0.centre);
             side1.vertexPoints[2] = new Vertex(sideVert2.vertice, sideVert2.normal, sideVert2.centre);
@@ -2257,7 +2256,7 @@ public class Cubil_Face : MonoBehaviour
 
         if (Mathf.Abs((_innerVertex.vertice.y - Oppvertex.vertice.y)) == 0) { return; }
 
-        Quad shatteredQuad = new Quad(intesectingQuad.centre, intesectingQuad.vertexPoints[0].normal);
+        Quad shatteredQuad = new Quad(intesectingQuad.centre, intesectingQuad.vertexPoints[0].normal, FaceDirection);
 
         shatteredQuad.vertexPoints[flipindex] = _innerVertex;
         shatteredQuad.vertexPoints[index] = intesectingQuad.vertexPoints[index];
@@ -2372,7 +2371,7 @@ public class Cubil_Face : MonoBehaviour
 
     void CreateNewQuad(Vector3 sp)
     {
-        Quad newQuad = new Quad(sp, new Vector3(0, 0, -1));
+        Quad newQuad = new Quad(sp, new Vector3(0, 0, -1), FaceDirection);
         newQuad.quadColor = QuadFaceColor;
 
         newQuad.CalculateQuadArea();
