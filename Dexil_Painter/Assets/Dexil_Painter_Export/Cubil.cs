@@ -154,27 +154,13 @@ public class Quad
     }
 
     public Vertex[] CreateTestVertices(Vector3 _c, Vector3 _n)
-    {                                                                            //
+    {                                                                            
         return VertexData.CreateVertices(faceDirection, _c, _n);
-    }                                                                            //
-
-    //public Quad (Vector3 _c, Vector3 _n, Direction dir)
-    //{
-    //   vertexPoints = VertexData.CreateVertices(dir, _c, _n); //CreateVerts(_c, _dir);
-    //   centre = _c;
-    //   CreateTris();
-    //   CalculateQuadArea();
-    //   //quadColor = Color.white;
-    //}
-
-    ~Quad()
-    {
-        //Debug.Log("I DED");
-    }
+    }                                                                            
 
     public void CreateTris(Direction dir)
     {
-        if (dir == Direction.BACK)
+        if (dir == Direction.BACK || dir == Direction.LEFT || dir == Direction.BOTTOM)
         {
             t1 = new Triangle(1, 3, 0);
             t2 = new Triangle(3, 2, 0);

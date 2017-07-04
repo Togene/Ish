@@ -522,9 +522,9 @@ MonoBehaviour:
   m_isRotationLocked: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 3.3880959, y: 8.810547, z: -1.25}
+    m_Target: {x: 11.165085, y: 5.896768, z: 5.6838927}
     speed: 2
-    m_Value: {x: 3.3880959, y: 8.810547, z: -1.25}
+    m_Value: {x: 11.165085, y: 5.896768, z: 5.6838927}
   m_RenderMode: 2
   m_ValidateTrueMetals: 0
   m_SceneViewState:
@@ -547,17 +547,17 @@ MonoBehaviour:
       speed: 2
       m_Value: 0
   m_Rotation:
-    m_Target: {x: 0.37976685, y: 0.08998925, z: -0.037128583, w: 0.9199512}
+    m_Target: {x: 0.20514748, y: 0.2606189, z: -0.056776214, w: 0.941684}
     speed: 2
-    m_Value: {x: 0.37976503, y: 0.08998882, z: -0.037128404, w: 0.9199468}
+    m_Value: {x: 0.20514748, y: 0.2606189, z: -0.056776214, w: 0.941684}
   m_Size:
-    m_Target: 12.210484
+    m_Target: 12.305426
     speed: 2
-    m_Value: 12.210484
+    m_Value: 12.305426
   m_Ortho:
-    m_Target: 1
+    m_Target: 0
     speed: 2
-    m_Value: 1
+    m_Value: 0
   m_LastSceneViewRotation: {x: 0.017393917, y: 0.035984587, z: -0.0006271078, w: 0.99920076}
   m_LastSceneViewOrtho: 0
   m_ReplacementShader: {fileID: 0}
@@ -686,18 +686,18 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SearchArea: 0
     m_Folders:
-    - Assets/Dexil_Painter_Export
+    - Assets/Material
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - Assets/Dexil_Painter_Export
+  - Assets/Material
   m_LastFoldersGridSize: 16
   m_LastProjectPath: C:\Users\Eugene\Documents\Ish\Dexil_Painter
   m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 04250000
-    m_LastClickedID: 9476
+    m_SelectedIDs: 2c250000
+    m_LastClickedID: 9516
     m_ExpandedIDs: 00000000de24000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -753,7 +753,7 @@ MonoBehaviour:
   m_ListAreaState:
     m_SelectedInstanceIDs: 
     m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 0
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: b81800005a1a0000ec1d0000b04d04001af70100f0e70100fc010000bca0000048db0100fe700400cce58bff5a210900fa920a00eae70a00f2fa00004e63f1ff142e030040b70b00840600003056080018dd19ff140c0000f0841d004c170000560f0000a41beaff88f95800b4030000080b0000f4070000ec0c0000060b0000f206000010070000067f0000b0770000f079000090800000840100002e410500b0020000fa000000884e0100ba0200009c030000840400003a0400009a2f0200c8d7feff2e42feff1ea2d4ff1e240000a2d700002e340400ea26000094240000f2260000ee260000282500007e220000c2270000d82800007636000040440000fc220000fc250000ba2200003820000056290000c8210000dc300000703000004e1c000044070000ae340000881e0000601d0000ce0600002a480000f645fdff1c1f00001a1f00008e290000ee97f9ff741f0000da1e0000e41d0000e61d0000b01f0000881d0000961f0000901d0000fa1e00003296fcffa21f0000961d0000a61f0000241e0000261e0000d61d0000ac1d0000a01d00009e1d000018f40300e09ffbfff21f000014200000da1b0000581c0000d41b0000d81b0000d41c0000e21c0000ee1c00004630000070270000885a00009823000000000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0

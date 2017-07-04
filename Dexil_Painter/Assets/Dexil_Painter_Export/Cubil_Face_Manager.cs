@@ -8,8 +8,6 @@ using System;
 [Serializable]
 public class Cubil_Face_Manager
 {
-    public Mesh FaceCubilMesh;
-
     Quad intesectingQuad, SelectedQuad, ConvexQuad;
     public Quad BigBoy;
     List<Quad> IntersectingQuadList = new List<Quad>(); List<Quad> antiQuadList = new List<Quad>();
@@ -36,9 +34,6 @@ public class Cubil_Face_Manager
 
     [Range(0, 10)]
     public int iterations = 1;
-
-    public Color[] customColors;
-
 
     private Vertex BigBoyBottomLeft, BigBoyBottomRight, 
                    BigBoyRightSideBottom, BigBoyRightSideTop,
@@ -2071,7 +2066,7 @@ public class Cubil_Face_Manager
 
         if (UPDATE)
         {
-            CreateMeshInformation();
+           // CreateMeshInformation();
 
             for (int i = 0; i < iterations; i++)
                 BigBoyAssimulation();  //Second Cleanup 
@@ -2460,43 +2455,43 @@ public class Cubil_Face_Manager
        // ConvexQuad.CalculateQuadArea();
     }
 
-    void CreateMeshInformation()
-    {
-        FaceCubilMesh = new Mesh();
-        Vector3[] MeshNorms = new Vector3[QuadList.Count * 4];
-        Vector3[] MeshVerts = new Vector3[QuadList.Count * 4];
-        int[] meshTris = new int[QuadList.Count * 6];
-        Vector2[] uvs = new Vector2[17 * 17];
-
-        //Normals and Verts UnPacking
-        for (int i = 0; i < QuadList.Count; i++)
-        {
-            uvs[i] = new Vector2(i / (float)16, i / (float)16);
-
-            MeshVerts[(i * 4) + 0] = QuadList[i].vertexPoints[0].vertice;
-            MeshVerts[(i * 4) + 1] = QuadList[i].vertexPoints[1].vertice;
-            MeshVerts[(i * 4) + 2] = QuadList[i].vertexPoints[2].vertice;
-            MeshVerts[(i * 4) + 3] = QuadList[i].vertexPoints[3].vertice;
-
-            MeshNorms[(i * 4) + 0] = QuadList[i].vertexPoints[0].normal;
-            MeshNorms[(i * 4) + 1] = QuadList[i].vertexPoints[1].normal;
-            MeshNorms[(i * 4) + 2] = QuadList[i].vertexPoints[2].normal;
-            MeshNorms[(i * 4) + 3] = QuadList[i].vertexPoints[3].normal;
-
-            meshTris[(i * 6) + 0] = QuadList[i].t1.indexArray[0] + (i * 4);
-            meshTris[(i * 6) + 1] = QuadList[i].t1.indexArray[1] + (i * 4);
-            meshTris[(i * 6) + 2] = QuadList[i].t1.indexArray[2] + (i * 4);
-                                                                  
-            meshTris[(i * 6) + 3] = QuadList[i].t2.indexArray[0] + (i * 4);
-            meshTris[(i * 6) + 4] = QuadList[i].t2.indexArray[1] + (i * 4);
-            meshTris[(i * 6) + 5] = QuadList[i].t2.indexArray[2] + (i * 4);
-        }
-
-        FaceCubilMesh.vertices = MeshVerts;
-        FaceCubilMesh.normals = MeshNorms;
-        FaceCubilMesh.triangles = meshTris;
-
-    }
+    //void CreateMeshInformation()
+    //{
+    //    FaceCubilMesh = new Mesh();
+    //    Vector3[] MeshNorms = new Vector3[QuadList.Count * 4];
+    //    Vector3[] MeshVerts = new Vector3[QuadList.Count * 4];
+    //    int[] meshTris = new int[QuadList.Count * 6];
+    //    Vector2[] uvs = new Vector2[17 * 17];
+    //
+    //    //Normals and Verts UnPacking
+    //    for (int i = 0; i < QuadList.Count; i++)
+    //    {
+    //        uvs[i] = new Vector2(i / (float)16, i / (float)16);
+    //
+    //        MeshVerts[(i * 4) + 0] = QuadList[i].vertexPoints[0].vertice;
+    //        MeshVerts[(i * 4) + 1] = QuadList[i].vertexPoints[1].vertice;
+    //        MeshVerts[(i * 4) + 2] = QuadList[i].vertexPoints[2].vertice;
+    //        MeshVerts[(i * 4) + 3] = QuadList[i].vertexPoints[3].vertice;
+    //
+    //        MeshNorms[(i * 4) + 0] = QuadList[i].vertexPoints[0].normal;
+    //        MeshNorms[(i * 4) + 1] = QuadList[i].vertexPoints[1].normal;
+    //        MeshNorms[(i * 4) + 2] = QuadList[i].vertexPoints[2].normal;
+    //        MeshNorms[(i * 4) + 3] = QuadList[i].vertexPoints[3].normal;
+    //
+    //        meshTris[(i * 6) + 0] = QuadList[i].t1.indexArray[0] + (i * 4);
+    //        meshTris[(i * 6) + 1] = QuadList[i].t1.indexArray[1] + (i * 4);
+    //        meshTris[(i * 6) + 2] = QuadList[i].t1.indexArray[2] + (i * 4);
+    //                                                              
+    //        meshTris[(i * 6) + 3] = QuadList[i].t2.indexArray[0] + (i * 4);
+    //        meshTris[(i * 6) + 4] = QuadList[i].t2.indexArray[1] + (i * 4);
+    //        meshTris[(i * 6) + 5] = QuadList[i].t2.indexArray[2] + (i * 4);
+    //    }
+    //
+    //    FaceCubilMesh.vertices = MeshVerts;
+    //    FaceCubilMesh.normals = MeshNorms;
+    //    FaceCubilMesh.triangles = meshTris;
+    //
+    //}
 
     #region Debugging
 

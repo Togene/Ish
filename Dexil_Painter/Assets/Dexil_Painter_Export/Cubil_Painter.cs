@@ -56,17 +56,17 @@ public class Cubil_Painter : MonoBehaviour
         faceManagers[0].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,0,+1), Direction.FRONT , Color.blue);
         faceManagers[1].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,0,-1), Direction.BACK  , Color.blue);
 
-        //faceManagers[2].FaceManagerAwake(CubilMesh, Cubil, new Vector3(-1,0,0), Direction.LEFT  , Color.red);
-        //faceManagers[3].FaceManagerAwake(CubilMesh, Cubil, new Vector3(+1,0,0), Direction.RIGHT , Color.red);
-        //
-        //faceManagers[4].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,+1,0), Direction.TOP   , Color.green);
-        //faceManagers[5].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,-1,0), Direction.BOTTOM, Color.green);
+        faceManagers[2].FaceManagerAwake(CubilMesh, Cubil, new Vector3(-1,0,0), Direction.LEFT  , Color.red);
+        faceManagers[3].FaceManagerAwake(CubilMesh, Cubil, new Vector3(+1,0,0), Direction.RIGHT , Color.red);
+        
+        faceManagers[4].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,+1,0), Direction.TOP   , Color.green);
+        faceManagers[5].FaceManagerAwake(CubilMesh, Cubil, new Vector3(0,-1,0), Direction.BOTTOM, Color.green);
 
     }
 
     void PaintCubeFaces()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 6; i++)
         {
             faceManagers[i].FaceConstruction();
         }
@@ -74,7 +74,7 @@ public class Cubil_Painter : MonoBehaviour
 
     void DrawCubeFaces()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 6; i++)
         {
             faceManagers[i].FaceDrawGizmos();
         }
@@ -142,50 +142,55 @@ public class Cubil_Painter : MonoBehaviour
 
    void CreateMesh()
    {
-        finalVerticesList = new List<Vector3>();
-        finalNormalList = new List<Vector3>();
-        finalTrianglesList = new List<int>();
+        CubilMesh = new Mesh();
 
-        Cubil.GetComponent<MeshFilter>().mesh = new Mesh();
+        int QuadListCountFinal = faceManagers[0].QuadList.Count +
+                                 faceManagers[1].QuadList.Count +
+                                 faceManagers[2].QuadList.Count +
+                                 faceManagers[3].QuadList.Count +
+                                 faceManagers[4].QuadList.Count +
+                                 faceManagers[5].QuadList.Count;
 
-        if (faceManagers[1] != null)
-        {
-            if (ZeroCheck(faceManagers[1].FaceCubilMesh.vertices)) finalVerticesList.AddRange(faceManagers[1].FaceCubilMesh.vertices);
-            if (ZeroCheck(faceManagers[1].FaceCubilMesh.normals)) finalNormalList.AddRange(faceManagers[1].FaceCubilMesh.normals);
-            if (ZeroCheck(faceManagers[1].FaceCubilMesh.triangles)) finalTrianglesList.AddRange(faceManagers[1].FaceCubilMesh.triangles);
-        }
+        Vector3[] finalNormalList = new Vector3[QuadListCountFinal * 4];
+        Vector3[] finalVerticesList = new Vector3[QuadListCountFinal * 4];
+        int[] finalTrianglesList = new int[QuadListCountFinal * 6];
+        List<Quad> finalQuadList = new List<Quad>();
 
-        if (faceManagers[0] != null)
-        {
-            if (ZeroCheck(faceManagers[0].FaceCubilMesh.vertices)) finalVerticesList.AddRange(faceManagers[0].FaceCubilMesh.vertices);
-            if (ZeroCheck(faceManagers[0].FaceCubilMesh.normals)) finalNormalList.AddRange(faceManagers[0].FaceCubilMesh.normals);
-            if (ZeroCheck(faceManagers[0].FaceCubilMesh.triangles)) finalTrianglesList.AddRange(faceManagers[0].FaceCubilMesh.triangles);
-        }
+        finalQuadList.AddRange(faceManagers[0].QuadList);
+        finalQuadList.AddRange(faceManagers[1].QuadList);
+        finalQuadList.AddRange(faceManagers[2].QuadList);
+        finalQuadList.AddRange(faceManagers[3].QuadList);
+        finalQuadList.AddRange(faceManagers[4].QuadList);
+        finalQuadList.AddRange(faceManagers[5].QuadList);
 
-        //finalVerticesList.AddRange(faceManagers[2].FaceCubilMesh.vertices);
-        //finalVerticesList.AddRange(faceManagers[3].FaceCubilMesh.vertices);
-        //finalVerticesList.AddRange(faceManagers[4].FaceCubilMesh.vertices);
-        //finalVerticesList.AddRange(faceManagers[5].FaceCubilMesh.vertices);
+        Vector2[] uvs = new Vector2[17 * 17];
 
-        //finalNormalList.AddRange(faceManagers[2].FaceCubilMesh.normals);
-        //finalNormalList.AddRange(faceManagers[3].FaceCubilMesh.normals);
-        //finalNormalList.AddRange(faceManagers[4].FaceCubilMesh.normals);
-        //finalNormalList.AddRange(faceManagers[5].FaceCubilMesh.normals);
+        //Normals and Verts UnPacking
 
-        //finalTrianglesList.AddRange(faceManagers[2].FaceCubilMesh.triangles);
-        //finalTrianglesList.AddRange(faceManagers[3].FaceCubilMesh.triangles);
-        //finalTrianglesList.AddRange(faceManagers[4].FaceCubilMesh.triangles);
-        //finalTrianglesList.AddRange(faceManagers[5].FaceCubilMesh.triangles);
+            for (int i = 0; i < finalQuadList.Count; i++)
+            {
+                uvs[i] = new Vector2(i / (float)16, i / (float)16);
+                finalVerticesList[( i * 4) + 0] = finalQuadList[i].vertexPoints[0].vertice;
+                finalVerticesList[( i * 4) + 1] = finalQuadList[i].vertexPoints[1].vertice;
+                finalVerticesList[( i * 4) + 2] = finalQuadList[i].vertexPoints[2].vertice;
+                finalVerticesList[( i * 4) + 3] = finalQuadList[i].vertexPoints[3].vertice;
+                finalNormalList[(   i * 4) + 0] = finalQuadList[i].vertexPoints[0].normal;
+                finalNormalList[(   i * 4) + 1] = finalQuadList[i].vertexPoints[1].normal;
+                finalNormalList[(   i * 4) + 2] = finalQuadList[i].vertexPoints[2].normal;
+                finalNormalList[(   i * 4) + 3] = finalQuadList[i].vertexPoints[3].normal;
+                finalTrianglesList[(i * 6) + 0] = finalQuadList[i].t1.indexArray[0] + (i * 4);
+                finalTrianglesList[(i * 6) + 1] = finalQuadList[i].t1.indexArray[1] + (i * 4);
+                finalTrianglesList[(i * 6) + 2] = finalQuadList[i].t1.indexArray[2] + (i * 4);                       
+                finalTrianglesList[(i * 6) + 3] = finalQuadList[i].t2.indexArray[0] + (i * 4);
+                finalTrianglesList[(i * 6) + 4] = finalQuadList[i].t2.indexArray[1] + (i * 4);
+                finalTrianglesList[(i * 6) + 5] = finalQuadList[i].t2.indexArray[2] + (i * 4);
+            }
 
+        CubilMesh.vertices =  finalVerticesList;
+        CubilMesh.normals =   finalNormalList;
+        CubilMesh.triangles = finalTrianglesList;
 
-        if (finalVerticesList.Count != 0)
-        {
-            CubilMesh.vertices =  finalVerticesList.ToArray();
-            CubilMesh.normals =   finalNormalList.ToArray();
-            CubilMesh.triangles = finalTrianglesList.ToArray();
-
-            Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
-        }
+        Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
    
    }
 
