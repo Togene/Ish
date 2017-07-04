@@ -11,7 +11,8 @@ public enum Direction
     LEFT,
     RIGHT,
     TOP,
-    BOTTOM
+    BOTTOM,
+    NULL
 };
 
 public class Triangle
@@ -126,7 +127,7 @@ public class Quad
     public Quad q;
     public int area;
 
-    public Quad(){ CreateTris(); vertexPoints = VertexData.CreateVertices(Direction.FRONT, new Vector3(0,0,0), new Vector3(0, 0, 0)); }
+    public Quad(){ CreateTris(); vertexPoints = VertexData.CreateVertices(Direction.NULL, new Vector3(0,0,0), new Vector3(0, 0, 0)); }
 
     public void CalculateCentrePoints()
     {
@@ -251,6 +252,7 @@ public class Quad
         newQuad.vertexPoints = vertexPoints;
         newQuad.quadColor = _color;
 
+        //Replacing
         for (int i = 0; i < leftIndices.Length; i++)
         {
             newQuad.vertexPoints[leftIndices[i]] = right.vertexPoints[leftIndices[i]];
@@ -364,7 +366,7 @@ public class Cubil
 
 }
 
-public struct VertexData
+public class VertexData
 {
     public static Vertex[] CreateVertices(Direction faceDirection, Vector3 _c, Vector3 _n)
     {

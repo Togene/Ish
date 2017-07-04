@@ -102,58 +102,25 @@ public class Cubil_Painter : MonoBehaviour
     void UserInput()
     {
         sp = ManageMouseInput();
-
+  
         pointInCube = g_Utils.pointInCube(sp, new Vector3(0, 0, 0), new Vector3(16, 16, 16));
 
         if (pointInCube)
         {
-           // selectionCube.SetCube(sp);
             PaintCubeFaces();
+            CreateMesh();
         }
     }
 
-   //void CreateMesh()
-   //{
-   //
-   //
-   //    CubilMesh = new Mesh();
-   //
-   //    Vector3[] MeshNorms = new Vector3[QuadList.Count * 4];
-   //    Vector3[] MeshVerts = new Vector3[QuadList.Count * 4];
-   //    int[] meshTris = new int[QuadList.Count * 6];
-   //    Vector2[] uvs = new Vector2[17 * 17];
-   //
-   //    //Normals and Verts UnPacking
-   //    for (int i = 0; i < QuadList.Count; i++)
-   //    {
-   //        uvs[i] = new Vector2(i / (float)16, i / (float)16);
-   //
-   //        MeshVerts[(i * 4) + 0] = QuadList[i].vertexPoints[0].vertice;
-   //        MeshVerts[(i * 4) + 1] = QuadList[i].vertexPoints[1].vertice;
-   //        MeshVerts[(i * 4) + 2] = QuadList[i].vertexPoints[2].vertice;
-   //        MeshVerts[(i * 4) + 3] = QuadList[i].vertexPoints[3].vertice;
-   //
-   //        MeshNorms[(i * 4) + 0] = QuadList[i].vertexPoints[0].normal;
-   //        MeshNorms[(i * 4) + 1] = QuadList[i].vertexPoints[1].normal;
-   //        MeshNorms[(i * 4) + 2] = QuadList[i].vertexPoints[2].normal;
-   //        MeshNorms[(i * 4) + 3] = QuadList[i].vertexPoints[3].normal;
-   //
-   //        meshTris[(i * 6) + 0] = QuadList[i].t1.indexArray[0] + (i * 4);
-   //        meshTris[(i * 6) + 1] = QuadList[i].t1.indexArray[1] + (i * 4);
-   //        meshTris[(i * 6) + 2] = QuadList[i].t1.indexArray[2] + (i * 4);
-   //
-   //        meshTris[(i * 6) + 3] = QuadList[i].t2.indexArray[0] + (i * 4);
-   //        meshTris[(i * 6) + 4] = QuadList[i].t2.indexArray[1] + (i * 4);
-   //        meshTris[(i * 6) + 5] = QuadList[i].t2.indexArray[2] + (i * 4);
-   //    }
-   //
-   //    CubilMesh.vertices = MeshVerts;
-   //    CubilMesh.normals = MeshNorms;
-   //    CubilMesh.triangles = meshTris;
-   //
-   //    Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
-   //
-   //}
+   void CreateMesh()
+   { 
+       CubilMesh.vertices = faceManagers[1].CubilMesh.vertices;
+       CubilMesh.normals = faceManagers[1].CubilMesh.normals;
+       CubilMesh.triangles = faceManagers[1].CubilMesh.triangles;
+   
+       Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
+   
+   }
 
 
     #region Debugging

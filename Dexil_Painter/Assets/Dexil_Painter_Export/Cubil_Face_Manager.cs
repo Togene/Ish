@@ -8,8 +8,8 @@ using System;
 [Serializable]
 public class Cubil_Face_Manager
 {
-    Mesh CubilMesh;
-    GameObject Cubil;
+    public Mesh CubilMesh;
+
     Quad intesectingQuad, SelectedQuad, ConvexQuad;
     public Quad BigBoy;
     List<Quad> IntersectingQuadList = new List<Quad>(); List<Quad> antiQuadList = new List<Quad>();
@@ -35,7 +35,7 @@ public class Cubil_Face_Manager
     public float TotalArea;
 
     [Range(0, 10)]
-    public int iterations = 2;
+    public int iterations = 1;
 
     public Color[] customColors;
 
@@ -57,18 +57,12 @@ public class Cubil_Face_Manager
     {
         QuadFaceColor = _faceColor;
         FaceDirection = _faceDirection;
-
-        SelectedQuad = Quad.create(new Vector3(0, 0, 0), new Vector3(0, 0, 0), FaceDirection, Color.white);
-
         normalDirection = _normalDir;
 
-        CubilMesh = cubilMesh;
-        Cubil = cubeObject;
-    }
+        SelectedQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, Color.white);
 
-    void Update()
-    {
-        UserInput();
+        CubilMesh = new Mesh();
+        //Cubil = cubeObject;
     }
 
     void BigBoyAssimulation() //Handles Bigger Quads simplifying the Mesh
@@ -113,51 +107,20 @@ public class Cubil_Face_Manager
         segmentIntersectionTopVertices = new List<Vertex>();
 
 
-        if (FaceDirection == Direction.FRONT || FaceDirection == Direction.BACK)
-        {
-            BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0,       BigBoy.vertexPoints[0].vertice.z), normalDirection, BigBoy.centre);
+        BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0,      BigBoy.vertexPoints[1].vertice.z), normalDirection, BigBoy.centre);
 
-            BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[1].vertice.z), normalDirection, BigBoy.centre);
+        BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y,    BigBoy.vertexPoints[3].vertice.z), normalDirection, BigBoy.centre);
 
-            BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
+        BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y,   BigBoy.vertexPoints[0].vertice.z), normalDirection, BigBoy.centre);
+        BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y,      BigBoy.vertexPoints[2].vertice.z), normalDirection, BigBoy.centre);
 
-            BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-        }
-        else if(FaceDirection == Direction.TOP || FaceDirection == Direction.BOTTOM)
-        {
-            BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-
-            BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-
-            BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-
-            BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-        }
-        else if (FaceDirection == Direction.LEFT || FaceDirection == Direction.RIGHT)
-        {
-            BigBoyBottomLeft = new Vertex(new Vector3(BigBoy.vertexPoints[0].vertice.x, 0, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyBottomRight = new Vertex(new Vector3(BigBoy.vertexPoints[1].vertice.x, 0, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-
-            BigBoyRightSideBottom = new Vertex(new Vector3(16, BigBoy.vertexPoints[1].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyRightSideTop = new Vertex(new Vector3(16, BigBoy.vertexPoints[3].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-
-            BigBoyLeftSideBottom = new Vertex(new Vector3(0, BigBoy.vertexPoints[0].vertice.y, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyLeftSideTop = new Vertex(new Vector3(0, BigBoy.vertexPoints[2].vertice.y, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-
-            BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16, BigBoy.vertexPoints[0].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-            BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16, BigBoy.vertexPoints[1].vertice.z), new Vector3(0, 0, 1), BigBoy.centre);
-        }
+        BigBoyTopLeft = new Vertex(new Vector3(BigBoy.vertexPoints[2].vertice.x, 16,         BigBoy.vertexPoints[2].vertice.z), normalDirection, BigBoy.centre);
+        BigBoyTopRight = new Vertex(new Vector3(BigBoy.vertexPoints[3].vertice.x, 16,        BigBoy.vertexPoints[3].vertice.z), normalDirection, BigBoy.centre);
 
 
-            if (QuadList.Count != 0)
+        if (QuadList.Count != 0)
         {
             for (int i = 0; i < QuadList.Count; i++)
             {
@@ -237,11 +200,11 @@ public class Cubil_Face_Manager
            LeftQuadAssimulate(horizontal);
         }
 
-         if(horizontal < vertical)
+        if (horizontal < vertical)
         {
             if (BBQuadTop.area != 0)
                TopQuadAssimulate(vertical);
-
+        
             if (BBQuadBottom.area != 0)
                BottomQuadAssimulate(vertical);
         }
@@ -374,7 +337,7 @@ public class Cubil_Face_Manager
                 {
                     //quad to cut will always have a top and a bottom quad so EZ
                     //Top Quad 
-                    Quad topQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
+                    Quad topQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, Color.green);
 
                     topQuad.vertexPoints[0].vertice = new Vector3(quadstoCut[i].vertexPoints[0].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
                     topQuad.vertexPoints[1].vertice = new Vector3(quadstoCut[i].vertexPoints[1].vertice.x, BBQuadRight.vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
@@ -386,7 +349,7 @@ public class Cubil_Face_Manager
                     topQuad.CalculateCentrePoints();
 
                     //Bottom Quad
-                    Quad bottomQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
+                    Quad bottomQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, Color.green);
 
                     bottomQuad.vertexPoints[0] = quadstoCut[i].vertexPoints[0];
                     bottomQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
@@ -446,9 +409,6 @@ public class Cubil_Face_Manager
 
                 }
 
-                // Debug.Log("Top Point " + splitTopPoint);
-                //Debug.Log("Bottom Point " + splitBottomPoint);
-
                 //Splitting the Top Quad at the Point 3
                 if (splitTop.Count != 0)
                 {
@@ -463,7 +423,7 @@ public class Cubil_Face_Manager
 
                         intesectingQuad = splitTop[i];
 
-                        FractureQuads(splitTopPoint);
+                        FractureQuads(new Vector3(splitTopPoint.x, splitTopPoint.y, 0));
                         //break;
                     }
                 }
@@ -481,12 +441,10 @@ public class Cubil_Face_Manager
 
                         intesectingQuad = splitBottom[j];
 
-                        FractureQuads(splitBottomPoint);
+                        FractureQuads(new Vector3(splitBottomPoint.x, splitBottomPoint.y, 0));
                         // break;
                     }
                 }
-
-
                 for (int i = 0; i < QuadList.Count; i++)
                 {
                     if (QuadList[i] == BigBoy)
@@ -511,7 +469,6 @@ public class Cubil_Face_Manager
                         if (BBQuadRight.inFace(intersectingQuads[i].vertexPoints[j].vertice))
                         {
                             vertexPointCount++;
-
                         }
                     }
 
@@ -526,16 +483,20 @@ public class Cubil_Face_Manager
             
 
             if (BBQuadRight != null)
-            {
-                BigBoy.vertexPoints[1].vertice = BBQuadRight.vertexPoints[1].vertice;
-                BigBoy.vertexPoints[3].vertice = BBQuadRight.vertexPoints[3].vertice;
+            { 
+               BigBoy.vertexPoints[1].vertice.x = BBQuadRight.vertexPoints[1].vertice.x;
+               BigBoy.vertexPoints[1].vertice.y = BBQuadRight.vertexPoints[1].vertice.y;
+             
+               BigBoy.vertexPoints[3].vertice.x = BBQuadRight.vertexPoints[3].vertice.x;
+               BigBoy.vertexPoints[3].vertice.y = BBQuadRight.vertexPoints[3].vertice.y;
+             
+               BBQuadRight = null;
+               segmentIntersectionRightVertices = new List<Vertex>();
+             
+               BigBoy.CalculateQuadArea();
+               BigBoy.CalculateCentre();
+               BigBoy.CalculateCentrePoints();
 
-                BBQuadRight = null;
-                segmentIntersectionRightVertices = new List<Vertex>();
-
-                BigBoy.CalculateQuadArea();
-                BigBoy.CalculateCentre();
-                BigBoy.CalculateCentrePoints();
             }
         }
     }
@@ -604,7 +565,6 @@ public class Cubil_Face_Manager
 
                     }
                 }
-
                 if (vertexPointCount == 4)
                 {
                     if (!quadstoRemove.Contains(intersectingQuads[i])) quadstoRemove.Add(intersectingQuads[i]);
@@ -631,7 +591,6 @@ public class Cubil_Face_Manager
             {
                 for (int i = 0; i < quadstoPush.Count; i++)
                 {
-
                     Vector3 vert0 = quadstoPush[i].vertexPoints[0].vertice;
                     Vector3 vert1 = quadstoPush[i].vertexPoints[1].vertice;
                     Vector3 vert2 = quadstoPush[i].vertexPoints[2].vertice;
@@ -655,7 +614,6 @@ public class Cubil_Face_Manager
                         quadstoPush[i].vertexPoints[3].vertice.x = BBQuadLeft.vertexPoints[0].vertice.x;
                         quadstoPush[i].vertexPoints[1].vertice.x = BBQuadLeft.vertexPoints[0].vertice.x;
                     }
-
                 }
             }
 
@@ -739,15 +697,13 @@ public class Cubil_Face_Manager
 
                 }
             }
-
-            // Debug.Log("Top Point " + splitTopPoint);
-            //Debug.Log("Bottom Point " + splitBottomPoint);
-
             //Splitting the Top Quad at the Point 3
 
             if (splitTop.Count != 0)
             {
                 splitTopPoint = FindPoint2(splitTop, BBQuadLeft);
+
+
 
                 for (int i = 0; i < splitTop.Count; i++)
                 {
@@ -757,7 +713,7 @@ public class Cubil_Face_Manager
 
                     intesectingQuad = splitTop[i];
 
-                    FractureQuads(splitTopPoint);
+                    FractureQuads(new Vector3(splitTopPoint.x, splitTopPoint.y, 0));
                     //break;
                 }
             }
@@ -774,7 +730,7 @@ public class Cubil_Face_Manager
 
                     intesectingQuad = splitBottom[j];
 
-                    FractureQuads(splitBottomPoint);
+                    FractureQuads(new Vector3(splitBottomPoint.x, splitBottomPoint.y, 0));
                     // break;
                 }
             }
@@ -820,15 +776,18 @@ public class Cubil_Face_Manager
 
             if (BBQuadLeft != null)
             {
-                BigBoy.vertexPoints[0].vertice = BBQuadLeft.vertexPoints[0].vertice;
-                BigBoy.vertexPoints[2].vertice = BBQuadLeft.vertexPoints[2].vertice;
-
-                BBQuadLeft = null;
-                segmentIntersectionLeftVertices = new List<Vertex>();
-
-                BigBoy.CalculateQuadArea();
-                BigBoy.CalculateCentre();
-                BigBoy.CalculateCentrePoints();
+               BigBoy.vertexPoints[0].vertice.x = BBQuadLeft.vertexPoints[0].vertice.x;
+               BigBoy.vertexPoints[0].vertice.y = BBQuadLeft.vertexPoints[0].vertice.y;
+              
+               BigBoy.vertexPoints[2].vertice.x = BBQuadLeft.vertexPoints[2].vertice.x;
+               BigBoy.vertexPoints[2].vertice.y = BBQuadLeft.vertexPoints[2].vertice.y;
+              
+               BBQuadLeft = null;
+               segmentIntersectionLeftVertices = new List<Vertex>();
+              
+               BigBoy.CalculateQuadArea();
+               BigBoy.CalculateCentre();
+               BigBoy.CalculateCentrePoints();
             }
         }
 
@@ -960,9 +919,9 @@ public class Cubil_Face_Manager
                     //Top Quad 
                     Quad leftQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
-                    leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
                     leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
-                    leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadTop.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
                     leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
 
                     leftQuad.CalculateQuadArea();
@@ -1047,7 +1006,7 @@ public class Cubil_Face_Manager
 
                     intesectingQuad = splitLeft[i];
 
-                    FractureQuads(splitLeftPoint);
+                    FractureQuads(new Vector3(splitLeftPoint.x, splitLeftPoint.y, 0));
                     //break;
                 }
             }
@@ -1064,7 +1023,7 @@ public class Cubil_Face_Manager
 
                     intesectingQuad = splitRight[j];
 
-                    FractureQuads(splitRightPoint);
+                    FractureQuads(new Vector3(splitRightPoint.x, splitRightPoint.y, 0));
                     // break;
                 }
             }
@@ -1109,8 +1068,11 @@ public class Cubil_Face_Manager
 
             if (BBQuadTop != null)
             {
-                BigBoy.vertexPoints[2].vertice = BBQuadTop.vertexPoints[2].vertice;
-                BigBoy.vertexPoints[3].vertice = BBQuadTop.vertexPoints[3].vertice;
+                BigBoy.vertexPoints[2].vertice.x = BBQuadTop.vertexPoints[2].vertice.x;          
+                BigBoy.vertexPoints[2].vertice.y = BBQuadTop.vertexPoints[2].vertice.y;
+
+                BigBoy.vertexPoints[3].vertice.x = BBQuadTop.vertexPoints[3].vertice.x;
+                BigBoy.vertexPoints[3].vertice.y = BBQuadTop.vertexPoints[3].vertice.y;
 
                 BBQuadTop = null;
                 segmentIntersectionTopVertices = new List<Vertex>();
@@ -1247,9 +1209,9 @@ public class Cubil_Face_Manager
                     //Left Quad 
                     Quad leftQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, QuadFaceColor);
 
-                    leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[0].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[0].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
                     leftQuad.vertexPoints[1] = quadstoCut[i].vertexPoints[1];
-                    leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[0].vertice.z);
+                    leftQuad.vertexPoints[2].vertice = new Vector3(BBQuadBottom.vertexPoints[1].vertice.x, quadstoCut[i].vertexPoints[2].vertice.y, quadstoCut[i].vertexPoints[1].vertice.z);
                     leftQuad.vertexPoints[3] = quadstoCut[i].vertexPoints[3];
 
                     leftQuad.CalculateQuadArea();
@@ -1318,7 +1280,7 @@ public class Cubil_Face_Manager
           
                     intesectingQuad = splitLeft[i];
         
-                    FractureQuads(splitLeftPoint);
+                    FractureQuads(new Vector3(splitLeftPoint.x, splitLeftPoint.y, 0));
                 }
             }
         
@@ -1334,7 +1296,7 @@ public class Cubil_Face_Manager
         
                     intesectingQuad = splitRight[j];
         
-                    FractureQuads(splitRightPoint);
+                    FractureQuads(new Vector3(splitRightPoint.x, splitRightPoint.y, 0));
                 }
             }
         }
@@ -1376,10 +1338,14 @@ public class Cubil_Face_Manager
 
             if (BBQuadBottom.area != 0)
             {
-                BigBoy.vertexPoints[0].vertice = BBQuadBottom.vertexPoints[0].vertice;
-                BigBoy.vertexPoints[1].vertice = BBQuadBottom.vertexPoints[1].vertice;
 
-                BBQuadBottom = new Quad();
+                BigBoy.vertexPoints[0].vertice.x = BBQuadBottom.vertexPoints[0].vertice.x;
+                BigBoy.vertexPoints[0].vertice.y = BBQuadBottom.vertexPoints[0].vertice.y;
+
+                BigBoy.vertexPoints[1].vertice.x = BBQuadBottom.vertexPoints[1].vertice.x;
+                BigBoy.vertexPoints[1].vertice.y = BBQuadBottom.vertexPoints[1].vertice.y;
+
+                BBQuadBottom = null;
                 segmentIntersectionBottomVertices = new List<Vertex>();
 
                 BigBoy.CalculateQuadArea();
@@ -1432,7 +1398,7 @@ public class Cubil_Face_Manager
                 {
                     if (centrePointsInside[j].x == x && centrePointsInside[j].y == y)
                     {
-                        result = centrePointsInside[j];
+                        result = new Vector3(centrePointsInside[j].x, centrePointsInside[j].y, quad.vertexPoints[0].vertice.z);
                     }
 
                 }
@@ -1490,7 +1456,7 @@ public class Cubil_Face_Manager
                 {
                     if (centrePointsInside[j].x == x && centrePointsInside[j].y == y)
                     {
-                        result = centrePointsInside[j];
+                        result = new Vector3(centrePointsInside[j].x, centrePointsInside[j].y, quad.vertexPoints[0].vertice.z);
                     }
 
                 }
@@ -1547,7 +1513,7 @@ public class Cubil_Face_Manager
                 {
                     if (centrePointsInside[j].x == x && centrePointsInside[j].y == y)
                     {
-                        result = centrePointsInside[j];
+                        result = new Vector3(centrePointsInside[j].x, centrePointsInside[j].y, quad.vertexPoints[0].vertice.z);
                     }
 
                 }
@@ -1599,7 +1565,7 @@ public class Cubil_Face_Manager
                 {
                     if (centrePointsInside[k].x == x && centrePointsInside[k].y == y)
                     {
-                        result = centrePointsInside[k];
+                        result = new Vector3(centrePointsInside[k].x, centrePointsInside[k].y, quad.vertexPoints[0].vertice.z);
                     }
 
                 }
@@ -1658,7 +1624,7 @@ public class Cubil_Face_Manager
             {
                 //Generate Phantom vertices and readjust the quad
 
-               Vertex[] phantomVertices = BBQuad.CreateTestVertices(BBQuad.antiPoints[0], BBQuad.vertexPoints[0].normal);
+               Vertex[] phantomVertices = BBQuad.CreateTestVertices(BBQuad.antiPoints[0], normalDirection);
 
 
                 BBQuad.vertexPoints[1].vertice.x = phantomVertices[0].vertice.x;
@@ -1863,10 +1829,10 @@ public class Cubil_Face_Manager
             if (intersectionCheck < 2)
                 return;
 
-            Vertex v0 = new Vertex(new Vector3(sX, sY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
-            Vertex v1 = new Vertex(new Vector3(gX, sY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
-            Vertex v2 = new Vertex(new Vector3(sX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
-            Vertex v3 = new Vertex(new Vector3(gX, gY, list[0].vertice.z), new Vector3(0,0,-1), list[0].centre);
+            Vertex v0 = new Vertex(new Vector3(sX, sY, list[0].vertice.z), normalDirection, list[0].centre);
+            Vertex v1 = new Vertex(new Vector3(gX, sY, list[1].vertice.z), normalDirection, list[0].centre);
+            Vertex v2 = new Vertex(new Vector3(sX, gY, list[2].vertice.z), normalDirection, list[0].centre);
+            Vertex v3 = new Vertex(new Vector3(gX, gY, list[3].vertice.z), normalDirection, list[0].centre);
 
             Quad caneryQuad = Quad.create(bigBoy.centre, normalDirection, FaceDirection, QuadFaceColor);
 
@@ -1991,7 +1957,7 @@ public class Cubil_Face_Manager
 
         if (((rx0 >= 0 && rx0 <= 1) || (ry0 >= 0 && ry0 <= 1)) && ((rx1 >= 0 && rx1 <= 1) || (ry1 >= 0 && ry1 <= 1)))
         {
-            return new Vertex(new Vector3(sectX, sectY, p0.vertice.z), new Vector3(0, 0, 1), p3.centre);
+            return new Vertex(new Vector3(sectX, sectY, p3.vertice.z), normalDirection, p3.centre);
         }
         else
             return null; 
@@ -2069,12 +2035,6 @@ public class Cubil_Face_Manager
         }
 
     }
-
-    void UserInput()
-    {
-        FaceConstruction();
-        //ColorCronenCells();
-    }
     
     public void FaceConstruction()
     {
@@ -2102,23 +2062,22 @@ public class Cubil_Face_Manager
                         UPDATE = true;
                     }
                 }
- 
             }
 
-        QuadCalculateCentre();
+        CleanUpQuads(); //Last CleanUp
 
         if (UPDATE)
         {
-            //CreateMesh();
-
-            CleanUpQuads(); //Last CleanUp
+            CreateMeshInformation();
 
             for (int i = 0; i < iterations; i++)
                 BigBoyAssimulation();  //Second Cleanup 
 
             UPDATE = false;
         }
-        
+
+        QuadCalculateCentre();
+
     }
 
     void QuadCalculateCentre()
@@ -2137,6 +2096,7 @@ public class Cubil_Face_Manager
     // ------------------------------------------------ Removing Quads -----------------------------------------------------------------
     void FractureQuads(Vector3 sp)
     {
+
         Quad newAntiQuad = Quad.create(sp, normalDirection, FaceDirection, QuadFaceColor);
 
         newAntiQuad.quadColor = Color.black;
@@ -2233,6 +2193,8 @@ public class Cubil_Face_Manager
         shatteredQuad.CalculateQuadArea();
         shatteredQuad.CalculateCentrePoints();
         shatteredQuad.CalculateCentre();
+
+        shatteredQuad.quadColor = Color.yellow;
 
         QuadList.Add(shatteredQuad);
 
@@ -2495,7 +2457,7 @@ public class Cubil_Face_Manager
        // ConvexQuad.CalculateQuadArea();
     }
 
-    void CreateMesh()
+    void CreateMeshInformation()
     {
         CubilMesh = new Mesh();
         Vector3[] MeshNorms = new Vector3[QuadList.Count * 4];
@@ -2531,7 +2493,7 @@ public class Cubil_Face_Manager
         CubilMesh.normals = MeshNorms;
         CubilMesh.triangles = meshTris;
 
-        Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
+      //  Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
 
     }
 

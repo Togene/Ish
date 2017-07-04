@@ -522,9 +522,9 @@ MonoBehaviour:
   m_isRotationLocked: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 8.72007, y: 12.893247, z: 5.621976}
+    m_Target: {x: 3.3880959, y: 8.810547, z: -1.25}
     speed: 2
-    m_Value: {x: 8.72007, y: 12.893247, z: 5.621976}
+    m_Value: {x: 3.3880959, y: 8.810547, z: -1.25}
   m_RenderMode: 2
   m_ValidateTrueMetals: 0
   m_SceneViewState:
@@ -547,17 +547,17 @@ MonoBehaviour:
       speed: 2
       m_Value: 0
   m_Rotation:
-    m_Target: {x: -0.021062175, y: 0.7249808, z: 0.02219388, w: 0.6880893}
+    m_Target: {x: 0.08995747, y: 0.5477408, z: -0.059384424, w: 0.8296802}
     speed: 2
-    m_Value: {x: -0.021062173, y: 0.7249807, z: 0.022193879, w: 0.68808925}
+    m_Value: {x: 0.0899571, y: 0.5477386, z: -0.059384182, w: 0.82967687}
   m_Size:
-    m_Target: 15.25053
+    m_Target: 11.052728
     speed: 2
-    m_Value: 15.25053
+    m_Value: 11.052728
   m_Ortho:
-    m_Target: 0
+    m_Target: 1
     speed: 2
-    m_Value: 0
+    m_Value: 1
   m_LastSceneViewRotation: {x: 0.017393917, y: 0.035984587, z: -0.0006271078, w: 0.99920076}
   m_LastSceneViewOrtho: 0
   m_ReplacementShader: {fileID: 0}
@@ -757,18 +757,18 @@ MonoBehaviour:
     m_ExpandedInstanceIDs: b81800005a1a0000ec1d0000b04d04001af70100f0e70100fc010000bca0000048db0100fe700400cce58bff5a210900fa920a00eae70a00f2fa00004e63f1ff142e030040b70b00840600003056080018dd19ff140c0000f0841d004c170000560f0000a41beaff88f95800b4030000080b0000f4070000ec0c0000060b0000f206000010070000067f0000b0770000f079000090800000840100002e410500b0020000fa000000884e0100ba0200009c030000840400003a0400009a2f0200c8d7feff2e42feff1ea2d4ff1e240000a2d700002e340400ea26000094240000f2260000ee260000282500007e220000c2270000d82800007636000040440000fc220000fc250000ba2200003820000056290000c8210000dc300000703000004e1c000044070000ae340000881e0000601d0000ce0600002a480000f645fdff1c1f00001a1f00008e290000ee97f9ff741f0000da1e0000e41d0000e61d0000b01f0000881d0000961f0000901d0000fa1e00003296fcffa21f0000961d0000a61f0000241e0000261e0000d61d0000ac1d0000a01d00009e1d000018f40300e09ffbfff21f000014200000da1b0000581c0000d41b0000d81b0000d41c0000e21c0000ee1c00004630000070270000885a00009823000000000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: Cubil_Face_Manager_Helper
-      m_OriginalName: Cubil_Face_Manager_Helper
+      m_Name: 
+      m_OriginalName: 
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 0
         height: 0
-      m_UserData: 10236
+      m_UserData: 0
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 0
+      m_OriginalEventType: 11
       m_IsRenamingFilename: 1
       m_ClientGUIView: {fileID: 13}
     m_CreateAssetUtility:
