@@ -8,7 +8,7 @@ using System;
 [Serializable]
 public class Cubil_Face_Manager
 {
-    public Mesh CubilMesh;
+    public Mesh FaceCubilMesh;
 
     Quad intesectingQuad, SelectedQuad, ConvexQuad;
     public Quad BigBoy;
@@ -53,7 +53,9 @@ public class Cubil_Face_Manager
 
     public Vector3 normalDirection;
 
-    public void FaceManagerAwake(Mesh cubilMesh, GameObject cubeObject, Vector3 _normalDir, Direction _faceDirection, Color _faceColor)
+    public string name;
+
+    public void FaceManagerAwake(Mesh FaceCubilMesh, GameObject cubeObject, Vector3 _normalDir, Direction _faceDirection, Color _faceColor)
     {
         QuadFaceColor = _faceColor;
         FaceDirection = _faceDirection;
@@ -61,8 +63,9 @@ public class Cubil_Face_Manager
 
         SelectedQuad = Quad.create(new Vector3(0, 0, 0), normalDirection, FaceDirection, Color.white);
 
-        CubilMesh = new Mesh();
+        FaceCubilMesh = new Mesh();
         //Cubil = cubeObject;
+        name = _faceDirection.ToString();
     }
 
     void BigBoyAssimulation() //Handles Bigger Quads simplifying the Mesh
@@ -2459,7 +2462,7 @@ public class Cubil_Face_Manager
 
     void CreateMeshInformation()
     {
-        CubilMesh = new Mesh();
+        FaceCubilMesh = new Mesh();
         Vector3[] MeshNorms = new Vector3[QuadList.Count * 4];
         Vector3[] MeshVerts = new Vector3[QuadList.Count * 4];
         int[] meshTris = new int[QuadList.Count * 6];
@@ -2489,11 +2492,9 @@ public class Cubil_Face_Manager
             meshTris[(i * 6) + 5] = QuadList[i].t2.indexArray[2] + (i * 4);
         }
 
-        CubilMesh.vertices = MeshVerts;
-        CubilMesh.normals = MeshNorms;
-        CubilMesh.triangles = meshTris;
-
-      //  Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
+        FaceCubilMesh.vertices = MeshVerts;
+        FaceCubilMesh.normals = MeshNorms;
+        FaceCubilMesh.triangles = meshTris;
 
     }
 

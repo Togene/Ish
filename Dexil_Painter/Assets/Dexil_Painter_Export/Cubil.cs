@@ -117,6 +117,7 @@ public class Vertex
 [Serializable]
 public class Quad
 {
+    public string name;
     public Vertex[] vertexPoints = new Vertex[4];
     public Triangle t1, t2;
     public Color quadColor;
@@ -127,7 +128,8 @@ public class Quad
     public Quad q;
     public int area;
 
-    public Quad(){ CreateTris(); vertexPoints = VertexData.CreateVertices(Direction.NULL, new Vector3(0,0,0), new Vector3(0, 0, 0)); }
+    //Default Quad Creation
+    public Quad(){ CreateTris(Direction.NULL); vertexPoints = VertexData.CreateVertices(Direction.NULL, new Vector3(0,0,0), new Vector3(0, 0, 0)); }
 
     public void CalculateCentrePoints()
     {
@@ -140,12 +142,12 @@ public class Quad
     {
         Quad obj = new Quad();
 
+        obj.name = dir.ToString();
         obj.faceDirection = dir;
         obj.quadColor = _color;
         obj.vertexPoints = VertexData.CreateVertices(dir, _c, _n);
         obj.centre = _c;
-        obj.CreateTris();
-        //obj.quadColor = Color.white;
+        obj.CreateTris(dir);
         obj.CalculateQuadArea();
 
         return obj;
@@ -170,10 +172,18 @@ public class Quad
         //Debug.Log("I DED");
     }
 
-    public void CreateTris()
+    public void CreateTris(Direction dir)
     {
-        t1 = new Triangle(0, 3, 1);
-        t2 = new Triangle(0, 2, 3);
+        if (dir == Direction.BACK)
+        {
+            t1 = new Triangle(1, 3, 0);
+            t2 = new Triangle(3, 2, 0);
+        }
+        else
+        {
+            t1 = new Triangle(0, 3, 1);
+            t2 = new Triangle(0, 2, 3);
+        }
     }
 
     public void CalculateQuadArea()
@@ -185,6 +195,7 @@ public class Quad
     {
 
         Gizmos.color = quadColor;
+
         //Drawing Vertices and Normals
         //Gizmos.DrawSphere(vertexPoints[0].vertice, size);
         //Gizmos.DrawLine(vertexPoints[0].vertice, vertexPoints[0].vertice + vertexPoints[0].normal);

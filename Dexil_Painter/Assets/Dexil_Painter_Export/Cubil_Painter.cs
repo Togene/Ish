@@ -24,11 +24,15 @@ public class Cubil_Painter : MonoBehaviour
 
     public static bool pointInCube;
    
-    public bool ColorRegions, DEBUG;
+    public bool ColorRegions, DEBUG, UPDATE;
 
     public Color GridColor, EditorCubeColor, DebugCubilMergeColor, QuadColor;
 
     public Cubil_Face_Manager[] faceManagers = new Cubil_Face_Manager[6];
+
+    public List<Vector3> finalVerticesList = new List<Vector3>();
+    public List<Vector3> finalNormalList = new List<Vector3>();
+    public List<int> finalTrianglesList = new List<int>();
 
     void Awake()
     {
@@ -108,17 +112,80 @@ public class Cubil_Painter : MonoBehaviour
         if (pointInCube)
         {
             PaintCubeFaces();
+          
+
+            if (Input.GetMouseButton(0))
+            {
+                UPDATE = true;
+            }
+        
+            if (Input.GetMouseButton(1))
+            {
+                UPDATE = true;
+            }
+
+        }
+
+        if (UPDATE)
+        {
             CreateMesh();
+            UPDATE = false;
         }
     }
 
+    bool ZeroCheck <T>(T[] list)
+    {
+        if (list.ToList().Count != 0) return true;
+
+        return false;
+    }
+
    void CreateMesh()
-   { 
-       CubilMesh.vertices = faceManagers[1].CubilMesh.vertices;
-       CubilMesh.normals = faceManagers[1].CubilMesh.normals;
-       CubilMesh.triangles = faceManagers[1].CubilMesh.triangles;
-   
-       Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
+   {
+        finalVerticesList = new List<Vector3>();
+        finalNormalList = new List<Vector3>();
+        finalTrianglesList = new List<int>();
+
+        Cubil.GetComponent<MeshFilter>().mesh = new Mesh();
+
+        if (faceManagers[1] != null)
+        {
+            if (ZeroCheck(faceManagers[1].FaceCubilMesh.vertices)) finalVerticesList.AddRange(faceManagers[1].FaceCubilMesh.vertices);
+            if (ZeroCheck(faceManagers[1].FaceCubilMesh.normals)) finalNormalList.AddRange(faceManagers[1].FaceCubilMesh.normals);
+            if (ZeroCheck(faceManagers[1].FaceCubilMesh.triangles)) finalTrianglesList.AddRange(faceManagers[1].FaceCubilMesh.triangles);
+        }
+
+        if (faceManagers[0] != null)
+        {
+            if (ZeroCheck(faceManagers[0].FaceCubilMesh.vertices)) finalVerticesList.AddRange(faceManagers[0].FaceCubilMesh.vertices);
+            if (ZeroCheck(faceManagers[0].FaceCubilMesh.normals)) finalNormalList.AddRange(faceManagers[0].FaceCubilMesh.normals);
+            if (ZeroCheck(faceManagers[0].FaceCubilMesh.triangles)) finalTrianglesList.AddRange(faceManagers[0].FaceCubilMesh.triangles);
+        }
+
+        //finalVerticesList.AddRange(faceManagers[2].FaceCubilMesh.vertices);
+        //finalVerticesList.AddRange(faceManagers[3].FaceCubilMesh.vertices);
+        //finalVerticesList.AddRange(faceManagers[4].FaceCubilMesh.vertices);
+        //finalVerticesList.AddRange(faceManagers[5].FaceCubilMesh.vertices);
+
+        //finalNormalList.AddRange(faceManagers[2].FaceCubilMesh.normals);
+        //finalNormalList.AddRange(faceManagers[3].FaceCubilMesh.normals);
+        //finalNormalList.AddRange(faceManagers[4].FaceCubilMesh.normals);
+        //finalNormalList.AddRange(faceManagers[5].FaceCubilMesh.normals);
+
+        //finalTrianglesList.AddRange(faceManagers[2].FaceCubilMesh.triangles);
+        //finalTrianglesList.AddRange(faceManagers[3].FaceCubilMesh.triangles);
+        //finalTrianglesList.AddRange(faceManagers[4].FaceCubilMesh.triangles);
+        //finalTrianglesList.AddRange(faceManagers[5].FaceCubilMesh.triangles);
+
+
+        if (finalVerticesList.Count != 0)
+        {
+            CubilMesh.vertices =  finalVerticesList.ToArray();
+            CubilMesh.normals =   finalNormalList.ToArray();
+            CubilMesh.triangles = finalTrianglesList.ToArray();
+
+            Cubil.GetComponent<MeshFilter>().mesh = CubilMesh;
+        }
    
    }
 
